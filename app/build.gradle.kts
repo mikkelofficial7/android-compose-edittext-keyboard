@@ -5,12 +5,12 @@ plugins {
 
 android {
     namespace = "com.view.android_compose_edittext_keyboard"
-    compileSdk = 33
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.view.android_compose_edittext_keyboard"
         minSdk = 29
-        targetSdk = 33
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
