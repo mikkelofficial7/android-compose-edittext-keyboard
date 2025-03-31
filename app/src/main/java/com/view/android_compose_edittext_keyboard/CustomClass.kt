@@ -45,6 +45,11 @@ enum class KeyboardInputType {
     PASSWORD_NUMBER
 }
 
+enum class KeyboardItemSymbol {
+    ALPHABET, // showing button alphanumeric
+    SPECIAL // showing button special character
+}
+
 @Composable
 fun CustomEditTextWithKeyboard(
     context: Context = LocalContext.current,
@@ -60,14 +65,16 @@ fun CustomEditTextWithKeyboard(
     cornerRadiusSize: Int = 8,
     height: Int = 70,
     width: Int = 200,
-    keyboardType: KeyboardInputType = KeyboardInputType.TEXT,
+    keyboardType: KeyboardInputType = KeyboardInputType.PASSWORD_TEXT,
     isAllCaps: Boolean = false,
-    isLowerCaps: Boolean = false,
+    isLowerText: Boolean = false,
     isFullWidth: Boolean = true,
-    onTextValueChange: (String) -> Unit = {},
+    maxLine: Int = 1,
+    onTextValueChange: (String, String) -> Unit = { masking, real -> },
     otherEditTextModifier: Modifier = Modifier
 ) {
     var text by remember { mutableStateOf(defaultText) }
+    var maskingText by remember { mutableStateOf(defaultText) }
     var isKeyboardShow by remember { mutableStateOf(false) } // Control visibility
 
     Column(
@@ -94,7 +101,7 @@ fun CustomEditTextWithKeyboard(
             contentAlignment = Alignment.CenterStart
         ) {
             Text(
-                text = if (text.isEmpty()) hintText else if (isAllCaps) text.uppercase() else if (isLowerCaps) text.lowercase() else text,
+                text = if (maskingText.isEmpty()) hintText else if (isAllCaps) maskingText.uppercase() else if (isLowerText) maskingText.lowercase() else maskingText,
                 color = Color(ContextCompat.getColor(context, if (text.isEmpty()) hintColor else textColor)),
                 fontSize = textSize.sp,
                 modifier = Modifier.padding(horizontal = 12.dp)
@@ -104,9 +111,11 @@ fun CustomEditTextWithKeyboard(
         if (isKeyboardShow) {
             when (keyboardType) {
                 KeyboardInputType.TEXT, KeyboardInputType.EMAIL, KeyboardInputType.PASSWORD_TEXT -> {
-                    showingCustomTextKeyboard(context, keyboardType, text, isAllCaps, isLowerCaps) {
-                        text = if (isAllCaps) it.uppercase() else if (isLowerCaps) it.lowercase() else it
-                        onTextValueChange(text)
+                    showingCustomTextKeyboard(context, keyboardType, text, isAllCaps = true, maxLine = maxLine) { masking, real ->
+                        text = if (isAllCaps) real.uppercase() else if (isLowerText) real.lowercase() else real
+                        maskingText = if (isAllCaps) masking.uppercase() else if (isLowerText) masking.lowercase() else masking
+
+                        onTextValueChange(maskingText, text)
                     }
                 }
                 else -> {
@@ -123,9 +132,11 @@ fun showingCustomTextKeyboard(
     keyboardType: KeyboardInputType,
     initialValue: String,
     isAllCaps: Boolean,
-    isLowerCaps: Boolean,
-    onTextValueChange: (String) -> Unit = {},
+    maxLine: Int,
+    onTextValueChange: (String, String) -> Unit = { masking, real -> },
 ) {
+    var isAllCapsState by remember { mutableStateOf(isAllCaps) }
+    var alphabetOrSpecialCharState by remember { mutableStateOf(KeyboardItemSymbol.ALPHABET) }
     var currentTypingResult by remember { mutableStateOf(initialValue) }
 
     // normal qwerty
@@ -151,9 +162,9 @@ fun showingCustomTextKeyboard(
     val otherRows = remember {
         arrayListOf(
             Triple("?123", false, "?123"),
-            Triple("", true, "space"),
+            Triple("", true, " "),
             Triple(".", false, "."),
-            Triple("Enter", false, "enter")
+            Triple("Enter", false, "\n")
         )
     }
 
@@ -161,17 +172,17 @@ fun showingCustomTextKeyboard(
     val numberAndSpecialRowsUpper = remember {
         listOf(
             Pair("1234567890", true),
-            Pair("!?#$%^&*(", true),
-            Pair(")_-+=/|~'!", true),
-            Pair("\":;?.,<>", true)
+            Pair("!?#$%^&*", true),
+            Pair("_-+=/|~'", true),
+            Pair("\":;?.,<>\\", true)
         )
     }
     val numberAndSpecialRowsLower = remember {
         listOf(
             Pair("`", false),
-            Pair(":", false),
-            Pair(";", false),
             Pair("@", false),
+            Pair("(", false),
+            Pair(")", false),
             Pair("{", false),
             Pair("}", false),
             Pair("[", false),
@@ -182,8 +193,8 @@ fun showingCustomTextKeyboard(
     val otherNumberAndSpecialRows = remember {
         arrayListOf(
             Triple("abc", false, "abc"),
-            Triple("", true, "space"),
-            Triple("Enter", false, "enter")
+            Triple("", true, " "),
+            Triple("Enter", false, "\n")
         )
     }
 
@@ -191,12 +202,19 @@ fun showingCustomTextKeyboard(
         otherRows.add(1, Triple("@", false, "@"))
     }
 
+    if (keyboardType == KeyboardInputType.PASSWORD_TEXT) {
+        otherRows.remove(otherRows.find { it.first == "" })
+        otherNumberAndSpecialRows.remove(otherNumberAndSpecialRows.find { it.first == "" })
+    }
+
     val keyboardBgColor = Color(ContextCompat.getColor(context, R.color.gray_c8c8c8))
     val keyboardTextColor = Color(ContextCompat.getColor(context, R.color.black))
     val keyboardFontSize = 16
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(top = 5.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top = 5.dp),
         verticalArrangement = Arrangement.Bottom
     ) {
         Box(
@@ -209,18 +227,27 @@ fun showingCustomTextKeyboard(
             contentAlignment = Alignment.Center // Center text inside the Box
         ) {
             Column(
-                modifier = Modifier.fillMaxWidth().padding(top = 40.dp, bottom = 5.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 40.dp, bottom = 5.dp),
                 verticalArrangement = Arrangement.Center
             ) {
                 // Keyboard upper
-                qwertyRowsUpper.forEach { qwertyRowUpper ->
+                val upperRowItem = if (alphabetOrSpecialCharState == KeyboardItemSymbol.ALPHABET)
+                    qwertyRowsUpper
+                else
+                    numberAndSpecialRowsUpper
+
+                upperRowItem.forEach { qwertyRowUpper ->
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center
                     ) {
                         qwertyRowUpper.first.forEach { key ->
+                            val formattedKey = if (isAllCapsState) key.uppercase() else key.lowercase()
+
                             Text(
-                                text = key.toString(),
+                                text = formattedKey,
                                 fontSize = keyboardFontSize.sp,
                                 color = keyboardTextColor,
                                 modifier = Modifier
@@ -228,6 +255,16 @@ fun showingCustomTextKeyboard(
                                     .background(keyboardBgColor, RoundedCornerShape(4.dp))
                                     .padding(11.dp)
                                     .then(if (qwertyRowUpper.second) Modifier.weight(1f) else Modifier)
+                                    .clickable {
+                                        currentTypingResult += formattedKey
+
+                                        val maskingText = if (keyboardType == KeyboardInputType.PASSWORD_TEXT) {
+                                            "*".repeat(currentTypingResult.length)
+                                        } else {
+                                            currentTypingResult
+                                        }
+                                        onTextValueChange(maskingText, currentTypingResult)
+                                    }
                             )
                         }
                     }
@@ -238,17 +275,34 @@ fun showingCustomTextKeyboard(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    qwertyRowsLower.forEach { key ->
+                    val lowerRowItem = if (alphabetOrSpecialCharState == KeyboardItemSymbol.ALPHABET)
+                        qwertyRowsLower
+                    else
+                        numberAndSpecialRowsLower
+
+                    lowerRowItem.forEach { key ->
                         when (val item = key.first) {
                             is String -> {
+                                val formattedKey = if (isAllCapsState) item.uppercase() else item.lowercase()
+
                                 Text(
-                                    text = item,
+                                    text = formattedKey,
                                     fontSize = keyboardFontSize.sp,
                                     color = keyboardTextColor,
                                     modifier = Modifier
                                         .padding(4.dp)
                                         .background(keyboardBgColor, RoundedCornerShape(6.dp))
                                         .padding(11.dp)
+                                        .clickable {
+                                            currentTypingResult += formattedKey
+
+                                            val maskingText = if (keyboardType == KeyboardInputType.PASSWORD_TEXT) {
+                                                "*".repeat(currentTypingResult.length)
+                                            } else {
+                                                currentTypingResult
+                                            }
+                                            onTextValueChange(maskingText, currentTypingResult)
+                                        }
                                 )
                             }
 
@@ -264,26 +318,94 @@ fun showingCustomTextKeyboard(
                                         .background(keyboardBgColor, RoundedCornerShape(6.dp))
                                         .padding(11.dp)
                                         .size(14.dp)
+                                        .clickable {
+                                            when (item) {
+                                                Icons.Filled.ArrowBack -> {
+                                                    currentTypingResult = currentTypingResult.dropLast(1)
+
+                                                    val maskingText = if (keyboardType == KeyboardInputType.PASSWORD_TEXT) {
+                                                        "*".repeat(currentTypingResult.length)
+                                                    } else {
+                                                        currentTypingResult
+                                                    }
+                                                    onTextValueChange(maskingText, currentTypingResult)
+                                                }
+
+                                                Icons.Filled.KeyboardArrowUp -> {
+                                                    isAllCapsState = !isAllCapsState
+
+                                                    val maskingText = if (keyboardType == KeyboardInputType.PASSWORD_TEXT) {
+                                                        "*".repeat(currentTypingResult.length)
+                                                    } else {
+                                                        currentTypingResult
+                                                    }
+                                                    onTextValueChange(maskingText, currentTypingResult)
+                                                }
+                                            }
+                                        }
                                 )
                             }
                         }
                     }
                 }
+
                 // Special Function Row
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    otherRows.forEach { key ->
+                    val otherRowItem = if (alphabetOrSpecialCharState == KeyboardItemSymbol.ALPHABET)
+                        otherRows
+                    else
+                        otherNumberAndSpecialRows
+
+                    otherRowItem.forEach { key ->
                         Text(
                             text = key.first,
                             fontSize = keyboardFontSize.sp,
                             color = keyboardTextColor,
                             modifier = Modifier
-                                .then(if (key.second) Modifier.fillMaxWidth().weight(1f) else Modifier.wrapContentWidth())
+                                .then(
+                                    if (key.second) Modifier
+                                        .fillMaxWidth()
+                                        .weight(1f) else Modifier.wrapContentWidth()
+                                )
                                 .padding(3.dp)
                                 .background(keyboardBgColor, RoundedCornerShape(4.dp))
                                 .padding(11.dp)
+                                .clickable {
+                                    when (key.first) {
+                                        "?123" -> {
+                                            alphabetOrSpecialCharState = KeyboardItemSymbol.SPECIAL
+                                        }
+                                        "abc" -> {
+                                            alphabetOrSpecialCharState = KeyboardItemSymbol.ALPHABET
+                                        }
+                                        "Enter" -> {
+                                            val newlineCount = currentTypingResult.count { it == '\n' }
+                                            if (newlineCount < maxLine) {
+                                                currentTypingResult += key.third
+
+                                                val maskingText = if (keyboardType == KeyboardInputType.PASSWORD_TEXT) {
+                                                    "*".repeat(currentTypingResult.length)
+                                                } else {
+                                                    currentTypingResult
+                                                }
+                                                onTextValueChange(maskingText, currentTypingResult)
+                                            }
+                                        }
+                                        else -> {
+                                            currentTypingResult += key.third
+
+                                            val maskingText = if (keyboardType == KeyboardInputType.PASSWORD_TEXT) {
+                                                "*".repeat(currentTypingResult.length)
+                                            } else {
+                                                currentTypingResult
+                                            }
+                                            onTextValueChange(maskingText, currentTypingResult)
+                                        }
+                                    }
+                                }
                         )
                     }
                 }
