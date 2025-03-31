@@ -204,7 +204,9 @@ fun showingCustomTextKeyboard(
 
     if (keyboardType == KeyboardInputType.PASSWORD_TEXT) {
         otherRows.remove(otherRows.find { it.first == "" })
+        otherRows.remove(otherRows.find { it.first == "Enter" })
         otherNumberAndSpecialRows.remove(otherNumberAndSpecialRows.find { it.first == "" })
+        otherNumberAndSpecialRows.remove(otherNumberAndSpecialRows.find { it.first == "Enter" })
     }
 
     val keyboardBgColor = Color(ContextCompat.getColor(context, R.color.gray_c8c8c8))
