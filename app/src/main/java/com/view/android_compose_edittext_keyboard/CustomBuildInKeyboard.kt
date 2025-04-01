@@ -6,7 +6,6 @@ import androidx.annotation.ColorRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,9 +25,11 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,9 +37,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.delay
 
 
 enum class KeyboardInputType {
@@ -85,6 +90,16 @@ fun CustomEditTextWithKeyboard(
     onTextValueChange: (String, String) -> Unit = { masking, real -> },
     otherEditTextModifier: Modifier = Modifier
 ) {
+    var cursorVisible by remember { mutableStateOf(true) }
+
+    val coroutineScope = rememberCoroutineScope()
+    LaunchedEffect(true) {
+        while (true) {
+            delay(1000)
+            cursorVisible = !cursorVisible // Toggle cursor visibility
+        }
+    }
+
     var text by remember { mutableStateOf(defaultText) }
     var maskingText by remember { mutableStateOf(defaultText) }
     var isKeyboardShow by remember { mutableStateOf(false) } // Control visibility
@@ -118,6 +133,10 @@ fun CustomEditTextWithKeyboard(
                 fontSize = textSize.sp,
                 modifier = Modifier.padding(horizontal = 12.dp)
             )
+
+            if (cursorVisible) {
+
+            }
         }
 
         if (isKeyboardShow) {
@@ -798,4 +817,3 @@ fun showingCustomTextKeyboard(
         }
     }
 }
-
