@@ -717,10 +717,10 @@ fun showingCustomTextKeyboard(
                                 Text(
                                     text = formattedDisplay,
                                     fontSize = keyboardFontSize.sp,
-                                    color = keyboardTextColor,
+                                    color = if (item.isEnable) keyboardTextColor else keyboardTextColor.copy(0.3f),
                                     modifier = Modifier
                                         .padding(4.dp)
-                                        .background(keyboardBgColor, RoundedCornerShape(6.dp))
+                                        .background(if (item.isEnable) keyboardBgColor else keyboardBgColor.copy(0.3f), RoundedCornerShape(6.dp))
                                         .padding(11.dp)
                                         .then(
                                             if (item.isFullExpand) Modifier
@@ -782,7 +782,7 @@ fun showingCustomTextKeyboard(
                                 Icon(
                                     imageVector = item.itemIconSymbol,
                                     contentDescription = null,
-                                    tint = keyboardTextColor,
+                                    tint = if (item.isEnable) keyboardTextColor else keyboardTextColor.copy(0.3f),
                                     modifier = Modifier
                                         .height(50.dp)
                                         .then(
@@ -792,7 +792,7 @@ fun showingCustomTextKeyboard(
                                             else Modifier.wrapContentWidth()
                                         )
                                         .padding(1.dp)
-                                        .background(keyboardBgColor, RoundedCornerShape(6.dp))
+                                        .background(if (item.isEnable) keyboardBgColor else keyboardBgColor.copy(0.3f), RoundedCornerShape(6.dp))
                                         .padding(11.dp)
                                         .size(14.dp)
                                         .clickable {
