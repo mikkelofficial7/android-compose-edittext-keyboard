@@ -38,8 +38,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -74,7 +77,7 @@ fun CustomEditTextWithKeyboard(
     hintText: String = "Enter text",
     gravityPositionVertical: Arrangement.Vertical = Arrangement.Top,
     @ColorRes textColor: Int = R.color.black,
-    @ColorRes hintColor: Int = R.color.black,
+    @ColorRes hintColor: Int = R.color.gray_7a7a7a,
     @ColorRes bgColor: Int = R.color.gray,
     @ColorRes borderColor: Int = R.color.transparent,
     borderSize: Int = 1,
@@ -91,18 +94,16 @@ fun CustomEditTextWithKeyboard(
     otherEditTextModifier: Modifier = Modifier
 ) {
     var cursorVisible by remember { mutableStateOf(true) }
+    var text by remember { mutableStateOf(defaultText) }
+    var maskingText by remember { mutableStateOf(defaultText) }
+    var isKeyboardShow by remember { mutableStateOf(false) }
 
-    val coroutineScope = rememberCoroutineScope()
     LaunchedEffect(true) {
         while (true) {
             delay(1000)
             cursorVisible = !cursorVisible // Toggle cursor visibility
         }
     }
-
-    var text by remember { mutableStateOf(defaultText) }
-    var maskingText by remember { mutableStateOf(defaultText) }
-    var isKeyboardShow by remember { mutableStateOf(false) } // Control visibility
 
     Column(
         verticalArrangement = gravityPositionVertical, // Centers content
@@ -127,15 +128,37 @@ fun CustomEditTextWithKeyboard(
                 .then(otherEditTextModifier),
             contentAlignment = Alignment.CenterStart
         ) {
-            Text(
-                text = if (maskingText.isEmpty()) hintText else if (isAllCaps) maskingText.uppercase() else if (isLowerText) maskingText.lowercase() else maskingText,
-                color = Color(ContextCompat.getColor(context, if (text.isEmpty()) hintColor else textColor)),
-                fontSize = textSize.sp,
-                modifier = Modifier.padding(horizontal = 12.dp)
-            )
+            val formattedText = buildAnnotatedString {
+                if (maskingText.isEmpty() && cursorVisible && isKeyboardShow) {
+                    pushStyle(SpanStyle(color =  Color(ContextCompat.getColor(context, R.color.black))))
+                    append("|")
+                    pop()
+                }
 
-            if (cursorVisible) {
+                append(if (maskingText.isEmpty()) "" else if (isAllCaps) maskingText.uppercase() else if (isLowerText) maskingText.lowercase() else maskingText)
 
+                if (maskingText.isNotEmpty() && cursorVisible && isKeyboardShow) {
+                    pushStyle(SpanStyle(color =  Color(ContextCompat.getColor(context, R.color.black))))
+                    append("|")
+                    pop()
+                }
+            }
+
+            Box {
+                if (maskingText.isEmpty()) {
+                    Text(
+                        text = hintText,
+                        color = Color(ContextCompat.getColor(context, hintColor)),
+                        fontSize = textSize.sp,
+                        modifier = Modifier.padding(horizontal = 12.dp)
+                    )
+                }
+                Text(
+                    text = formattedText,
+                    color = Color(ContextCompat.getColor(context, textColor)),
+                    fontSize = textSize.sp,
+                    modifier = Modifier.padding(horizontal = 12.dp)
+                )
             }
         }
 
