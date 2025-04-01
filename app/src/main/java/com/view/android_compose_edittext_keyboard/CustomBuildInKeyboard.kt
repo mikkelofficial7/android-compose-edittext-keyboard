@@ -57,7 +57,7 @@ fun CustomEditTextWithKeyboard(
     hintText: String = "Enter text",
     gravityPositionVertical: Arrangement.Vertical = Arrangement.Top,
     @ColorRes textColor: Int = R.color.black,
-    @ColorRes hintColor: Int = R.color.gray,
+    @ColorRes hintColor: Int = R.color.black,
     @ColorRes bgColor: Int = R.color.gray,
     @ColorRes borderColor: Int = R.color.transparent,
     borderSize: Int = 1,
