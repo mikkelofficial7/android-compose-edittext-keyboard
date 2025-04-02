@@ -15,3 +15,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "android-compose-edittext-keyboard"
 include(":app")
+include(":compose-keyboard-edittext")

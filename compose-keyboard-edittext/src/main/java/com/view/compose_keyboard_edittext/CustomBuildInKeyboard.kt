@@ -1,4 +1,4 @@
-package com.view.android_compose_edittext_keyboard
+package com.view.compose_keyboard_edittext
 
 import android.content.Context
 import androidx.activity.compose.BackHandler
@@ -34,7 +34,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
@@ -42,39 +41,19 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
+import com.view.compose_keyboard_edittext.enums.KeyboardComponent
+import com.view.compose_keyboard_edittext.enums.KeyboardInputType
+import com.view.compose_keyboard_edittext.enums.KeyboardItemSymbol
 import kotlinx.coroutines.delay
 
-
-enum class KeyboardInputType {
-    NUMBER,
-    PHONE,
-    TEXT,
-    EMAIL,
-    PASSWORD_TEXT,
-    PASSWORD_NUMBER
-}
-
-enum class KeyboardItemSymbol {
-    ALPHABET, // showing button alphanumeric
-    SPECIAL // showing button special character
-}
-
-private class KeyboardComponent(
-    val itemTextSymbol: String? = null,
-    val itemTextDesc: String? = null,
-    val itemIconSymbol: ImageVector? = null,
-    val itemValue: String = "",
-    val isFullExpand: Boolean = false,
-    val isEnable: Boolean = true
-)
-
 @Composable
-fun CustomEditTextWithKeyboard(
+fun customEditTextWithKeyboard(
     context: Context = LocalContext.current,
     defaultText: String = "",
     hintText: String = "Enter text",
-    gravityPositionVertical: Arrangement.Vertical = Arrangement.Top,
     @ColorRes textColor: Int = R.color.black,
     @ColorRes hintColor: Int = R.color.gray_7a7a7a,
     @ColorRes bgColor: Int = R.color.gray,
@@ -84,13 +63,13 @@ fun CustomEditTextWithKeyboard(
     cornerRadiusSize: Int = 8,
     height: Int = 70,
     width: Int = 200,
-    keyboardType: KeyboardInputType = KeyboardInputType.PHONE,
+    keyboardType: KeyboardInputType = KeyboardInputType.NUMBER,
     isAllCaps: Boolean = false,
     isLowerText: Boolean = false,
     isFullWidth: Boolean = true,
     maxLine: Int = 1,
-    onTextValueChange: (String, String) -> Unit = { masking, real -> },
-    otherEditTextModifier: Modifier = Modifier
+    onTextValueChange: (String, String) -> Unit = { _, _ -> },
+    modifier: Modifier = Modifier
 ) {
     var cursorVisible by remember { mutableStateOf(true) }
     var text by remember { mutableStateOf(defaultText) }
@@ -104,8 +83,8 @@ fun CustomEditTextWithKeyboard(
         }
     }
 
-    Column(
-        verticalArrangement = gravityPositionVertical, // Centers content
+    Box(
+        modifier = Modifier
     ) {
         Box(
             modifier = Modifier
@@ -124,7 +103,7 @@ fun CustomEditTextWithKeyboard(
                 .clickable {
                     isKeyboardShow = !isKeyboardShow
                 }
-                .then(otherEditTextModifier),
+                .then(modifier),
             contentAlignment = Alignment.CenterStart
         ) {
             val formattedText = buildAnnotatedString {
@@ -683,86 +662,119 @@ fun showingCustomTextKeyboard(
     val keyboardTextColor = Color(ContextCompat.getColor(context, R.color.black))
     val keyboardFontSize = 16
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(top = 5.dp)
-            .pointerInput(Unit) {
-                detectTapGestures(onTap = {
-                    onDismiss(!isKeyboardShow)
-                })
-            },
-        verticalArrangement = Arrangement.Bottom
+    Dialog(
+        onDismissRequest = { onDismiss(!isKeyboardShow) },
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            dismissOnBackPress = true,
+            dismissOnClickOutside = true
+        )
     ) {
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .pointerInput(Unit) { detectTapGestures() }
-                .background(
-                    Color(ContextCompat.getColor(context, R.color.gray)),
-                    shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
-                ),
-            contentAlignment = Alignment.Center // Center text inside the Box
+                .fillMaxSize()
+                .background(Color(ContextCompat.getColor(context, R.color.transparent)).copy(0.1f))
+                .pointerInput(Unit) {
+                    detectTapGestures { onDismiss(!isKeyboardShow) }
+                },
+            contentAlignment = Alignment.BottomCenter,
         ) {
-            Column(
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 40.dp, bottom = 5.dp),
-                verticalArrangement = Arrangement.Center
+                    .background(
+                        Color(ContextCompat.getColor(context, R.color.gray)),
+                        shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
+                    )
+                    .pointerInput(Unit) { detectTapGestures { } }
             ) {
-                val symbolList = if (alphabetOrSpecialCharState == KeyboardItemSymbol.ALPHABET)
-                    normalSymbol
-                else
-                    specialSymbol
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 20.dp, bottom = 5.dp),
+                    verticalArrangement = Arrangement.Bottom
+                ) {
+                    val symbolList = if (alphabetOrSpecialCharState == KeyboardItemSymbol.ALPHABET)
+                        normalSymbol
+                    else
+                        specialSymbol
 
-                symbolList.forEachIndexed { index, oneRowItem ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = when (index) {
-                            1 -> Arrangement.Center
-                            else -> Arrangement.SpaceEvenly
-                        }
-                    ) {
-                        oneRowItem.forEach { item ->
-                            if (!item.itemTextSymbol.isNullOrEmpty()) {
-                                val formattedDisplay = if (isAllCapsState) item.itemTextSymbol.uppercase() else item.itemTextSymbol.lowercase()
+                    Row {
+                        Text(
+                            text = if (keyboardType != KeyboardInputType.PASSWORD_TEXT) currentTypingResult else "",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(10.dp),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                    symbolList.forEachIndexed { index, oneRowItem ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = when (index) {
+                                1 -> Arrangement.Center
+                                else -> Arrangement.SpaceEvenly
+                            }
+                        ) {
+                            oneRowItem.forEach { item ->
+                                if (!item.itemTextSymbol.isNullOrEmpty()) {
+                                    val formattedDisplay =
+                                        if (isAllCapsState) item.itemTextSymbol.uppercase() else item.itemTextSymbol.lowercase()
 
-                                Text(
-                                    text = formattedDisplay,
-                                    fontSize = keyboardFontSize.sp,
-                                    color = if (item.isEnable) keyboardTextColor else keyboardTextColor.copy(0.3f),
-                                    modifier = Modifier
-                                        .padding(4.dp)
-                                        .background(
-                                            if (item.isEnable) keyboardBgColor else keyboardBgColor.copy(
-                                                0.3f
-                                            ), RoundedCornerShape(6.dp)
-                                        )
-                                        .padding(11.dp)
-                                        .then(
-                                            if (item.isFullExpand) Modifier
-                                                .fillMaxWidth()
-                                                .weight(1f)
-                                            else Modifier.wrapContentWidth()
-                                        )
-                                        .clickable {
-                                            if (!item.isEnable) return@clickable
+                                    Text(
+                                        text = formattedDisplay,
+                                        fontSize = keyboardFontSize.sp,
+                                        color = if (item.isEnable) keyboardTextColor else keyboardTextColor.copy(
+                                            0.3f
+                                        ),
+                                        modifier = Modifier
+                                            .padding(4.dp)
+                                            .background(
+                                                if (item.isEnable) keyboardBgColor else keyboardBgColor.copy(
+                                                    0.3f
+                                                ), RoundedCornerShape(6.dp)
+                                            )
+                                            .padding(11.dp)
+                                            .then(
+                                                if (item.isFullExpand) Modifier
+                                                    .fillMaxWidth()
+                                                    .weight(1f)
+                                                else Modifier.wrapContentWidth()
+                                            )
+                                            .clickable {
+                                                if (!item.isEnable) return@clickable
 
-                                            when (item.itemTextSymbol) {
-                                                "?123" -> {
-                                                    alphabetOrSpecialCharState =
-                                                        KeyboardItemSymbol.SPECIAL
-                                                }
+                                                when (item.itemTextSymbol) {
+                                                    "?123" -> {
+                                                        alphabetOrSpecialCharState =
+                                                            KeyboardItemSymbol.SPECIAL
+                                                    }
 
-                                                "abc" -> {
-                                                    alphabetOrSpecialCharState =
-                                                        KeyboardItemSymbol.ALPHABET
-                                                }
+                                                    "abc" -> {
+                                                        alphabetOrSpecialCharState =
+                                                            KeyboardItemSymbol.ALPHABET
+                                                    }
 
-                                                "Enter" -> {
-                                                    val newlineCount =
-                                                        currentTypingResult.count { it == '\n' }
-                                                    if (newlineCount < maxLine) {
+                                                    "Enter" -> {
+                                                        val newlineCount =
+                                                            currentTypingResult.count { it == '\n' }
+                                                        if (newlineCount < maxLine) {
+                                                            currentTypingResult += item.itemValue
+
+                                                            val maskingText =
+                                                                if (keyboardType == KeyboardInputType.PASSWORD_TEXT) {
+                                                                    "*".repeat(currentTypingResult.length)
+                                                                } else {
+                                                                    currentTypingResult
+                                                                }
+                                                            onTextValueChange(
+                                                                maskingText,
+                                                                currentTypingResult
+                                                            )
+                                                        }
+                                                    }
+
+                                                    else -> {
                                                         currentTypingResult += item.itemValue
 
                                                         val maskingText =
@@ -777,82 +789,69 @@ fun showingCustomTextKeyboard(
                                                         )
                                                     }
                                                 }
+                                            }
+                                    )
+                                } else if (item.itemIconSymbol != null) {
+                                    Icon(
+                                        imageVector = item.itemIconSymbol,
+                                        contentDescription = null,
+                                        tint = if (item.isEnable) keyboardTextColor else keyboardTextColor.copy(
+                                            0.3f
+                                        ),
+                                        modifier = Modifier
+                                            .height(50.dp)
+                                            .then(
+                                                if (item.isFullExpand) Modifier
+                                                    .fillMaxWidth()
+                                                    .weight(1f)
+                                                else Modifier.wrapContentWidth()
+                                            )
+                                            .padding(1.dp)
+                                            .background(
+                                                if (item.isEnable) keyboardBgColor else keyboardBgColor.copy(
+                                                    0.3f
+                                                ), RoundedCornerShape(6.dp)
+                                            )
+                                            .padding(11.dp)
+                                            .size(14.dp)
+                                            .clickable {
+                                                if (!item.isEnable) return@clickable
 
-                                                else -> {
-                                                    currentTypingResult += item.itemValue
+                                                when (item.itemValue) {
+                                                    "_del_" -> {
+                                                        currentTypingResult =
+                                                            currentTypingResult.dropLast(1)
 
-                                                    val maskingText =
-                                                        if (keyboardType == KeyboardInputType.PASSWORD_TEXT) {
-                                                            "*".repeat(currentTypingResult.length)
-                                                        } else {
+                                                        val maskingText =
+                                                            if (keyboardType == KeyboardInputType.PASSWORD_TEXT) {
+                                                                "*".repeat(currentTypingResult.length)
+                                                            } else {
+                                                                currentTypingResult
+                                                            }
+                                                        onTextValueChange(
+                                                            maskingText,
                                                             currentTypingResult
-                                                        }
-                                                    onTextValueChange(
-                                                        maskingText,
-                                                        currentTypingResult
-                                                    )
+                                                        )
+                                                    }
+
+                                                    "_caps_" -> {
+                                                        isAllCapsState = !isAllCapsState
+
+                                                        val maskingText =
+                                                            if (keyboardType == KeyboardInputType.PASSWORD_TEXT) {
+                                                                "*".repeat(currentTypingResult.length)
+                                                            } else {
+                                                                currentTypingResult
+                                                            }
+                                                        onTextValueChange(
+                                                            maskingText,
+                                                            currentTypingResult
+                                                        )
+                                                    }
                                                 }
                                             }
-                                        }
-                                )
-                            } else if (item.itemIconSymbol != null) {
-                                Icon(
-                                    imageVector = item.itemIconSymbol,
-                                    contentDescription = null,
-                                    tint = if (item.isEnable) keyboardTextColor else keyboardTextColor.copy(0.3f),
-                                    modifier = Modifier
-                                        .height(50.dp)
-                                        .then(
-                                            if (item.isFullExpand) Modifier
-                                                .fillMaxWidth()
-                                                .weight(1f)
-                                            else Modifier.wrapContentWidth()
-                                        )
-                                        .padding(1.dp)
-                                        .background(
-                                            if (item.isEnable) keyboardBgColor else keyboardBgColor.copy(
-                                                0.3f
-                                            ), RoundedCornerShape(6.dp)
-                                        )
-                                        .padding(11.dp)
-                                        .size(14.dp)
-                                        .clickable {
-                                            if (!item.isEnable) return@clickable
-
-                                            when (item.itemValue) {
-                                                "_del_" -> {
-                                                    currentTypingResult =
-                                                        currentTypingResult.dropLast(1)
-
-                                                    val maskingText =
-                                                        if (keyboardType == KeyboardInputType.PASSWORD_TEXT) {
-                                                            "*".repeat(currentTypingResult.length)
-                                                        } else {
-                                                            currentTypingResult
-                                                        }
-                                                    onTextValueChange(
-                                                        maskingText,
-                                                        currentTypingResult
-                                                    )
-                                                }
-
-                                                "_caps_" -> {
-                                                    isAllCapsState = !isAllCapsState
-
-                                                    val maskingText =
-                                                        if (keyboardType == KeyboardInputType.PASSWORD_TEXT) {
-                                                            "*".repeat(currentTypingResult.length)
-                                                        } else {
-                                                            currentTypingResult
-                                                        }
-                                                    onTextValueChange(
-                                                        maskingText,
-                                                        currentTypingResult
-                                                    )
-                                                }
-                                            }
-                                        }
-                                )
+                                    )
+                                }
                             }
                         }
                     }
@@ -1042,162 +1041,179 @@ fun showingCustomNumberKeyboard(
     val keyboardTextColor = Color(ContextCompat.getColor(context, R.color.black))
     val keyboardFontSize = 16
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(top = 5.dp)
-            .pointerInput(Unit) {
-                detectTapGestures(onTap = {
-                    onDismiss(!isKeyboardShow)
-                })
-            },
-        verticalArrangement = Arrangement.Bottom
+    Dialog(
+        onDismissRequest = { onDismiss(!isKeyboardShow) },
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            dismissOnBackPress = true,
+            dismissOnClickOutside = true
+        )
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .pointerInput(Unit) { detectTapGestures() }
-                .background(
-                    Color(ContextCompat.getColor(context, R.color.gray)),
-                    shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
-                ),
-            contentAlignment = Alignment.Center // Center text inside the Box
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .background(Color(ContextCompat.getColor(context, R.color.transparent)).copy(0.1f))
+            .pointerInput(Unit) {
+                detectTapGestures { onDismiss(!isKeyboardShow) }
+            },
+            contentAlignment = Alignment.BottomCenter,
         ) {
-            Column(
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 40.dp, bottom = 5.dp),
-                verticalArrangement = Arrangement.Center
+                    .background(
+                        Color(ContextCompat.getColor(context, R.color.gray)),
+                        shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
+                    )
+                    .pointerInput(Unit) { detectTapGestures { } }
             ) {
-                phoneSymbol.forEachIndexed { index, oneRowItem ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        oneRowItem.forEach { item ->
-                            if (!item.itemTextSymbol.isNullOrEmpty()) {
-                                val formattedDisplay = item.itemTextSymbol
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 20.dp, bottom = 5.dp),
+                    verticalArrangement = Arrangement.Bottom
+                ) {
+                    Row {
+                        Text(
+                            text = if (keyboardType != KeyboardInputType.PASSWORD_NUMBER) currentTypingResult else "",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(10.dp),
+                            textAlign = TextAlign.Center
+                        )
+                    }
 
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Center,
-                                    modifier = Modifier
-                                        .padding(4.dp)
-                                        .then(
-                                            if (item.isFullExpand) Modifier
-                                                .fillMaxWidth()
-                                                .weight(1f)
-                                            else Modifier.wrapContentWidth()
-                                        )
-                                        .background(
-                                            if (item.isEnable)
-                                                keyboardBgColor
-                                            else
-                                                keyboardBgColor.copy(0.3f), RoundedCornerShape(6.dp)
-                                        )
-                                        .then(
-                                            if (index > 0) {
-                                                if (item.itemTextDesc.isNullOrEmpty())
-                                                    Modifier.padding(22.dp)
+                    phoneSymbol.forEachIndexed { index, oneRowItem ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            oneRowItem.forEach { item ->
+                                if (!item.itemTextSymbol.isNullOrEmpty()) {
+                                    val formattedDisplay = item.itemTextSymbol
+
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.Center,
+                                        modifier = Modifier
+                                            .padding(4.dp)
+                                            .then(
+                                                if (item.isFullExpand) Modifier
+                                                    .fillMaxWidth()
+                                                    .weight(1f)
+                                                else Modifier.wrapContentWidth()
+                                            )
+                                            .background(
+                                                if (item.isEnable)
+                                                    keyboardBgColor
                                                 else
-                                                    Modifier.padding(11.dp)
-                                            } else {
-                                                Modifier.padding(top = 5.dp, bottom = 5.dp)
-                                            }
-                                        )
-                                        .clickable {
-                                            if (!item.isEnable) return@clickable
-                                            currentTypingResult += item.itemValue
-
-                                            val maskingText =
-                                                if (keyboardType == KeyboardInputType.PASSWORD_NUMBER) {
-                                                    "*".repeat(currentTypingResult.length)
+                                                    keyboardBgColor.copy(0.3f),
+                                                RoundedCornerShape(6.dp)
+                                            )
+                                            .then(
+                                                if (index > 0) {
+                                                    if (item.itemTextDesc.isNullOrEmpty())
+                                                        Modifier.padding(22.dp)
+                                                    else
+                                                        Modifier.padding(11.dp)
                                                 } else {
-                                                    currentTypingResult
+                                                    Modifier.padding(top = 5.dp, bottom = 5.dp)
                                                 }
-                                            onTextValueChange(
-                                                maskingText,
-                                                currentTypingResult
+                                            )
+                                            .clickable {
+                                                if (!item.isEnable) return@clickable
+                                                currentTypingResult += item.itemValue
+
+                                                val maskingText =
+                                                    if (keyboardType == KeyboardInputType.PASSWORD_NUMBER) {
+                                                        "*".repeat(currentTypingResult.length)
+                                                    } else {
+                                                        currentTypingResult
+                                                    }
+                                                onTextValueChange(
+                                                    maskingText,
+                                                    currentTypingResult
+                                                )
+                                            }
+                                    ) {
+                                        Text(
+                                            text = formattedDisplay,
+                                            fontSize = keyboardFontSize.sp,
+                                            textAlign = TextAlign.Center,
+                                            color = if (item.isEnable) keyboardTextColor else keyboardTextColor.copy(0.3f),
+                                        )
+                                        if (!item.itemTextDesc.isNullOrEmpty()) {
+                                            Text(
+                                                text = item.itemTextDesc,
+                                                modifier = Modifier.wrapContentWidth()
                                             )
                                         }
-                                ) {
-                                    Text(
-                                        text = formattedDisplay,
-                                        fontSize = keyboardFontSize.sp,
-                                        textAlign = TextAlign.Center,
-                                        color = if (item.isEnable) keyboardTextColor else keyboardTextColor.copy(0.3f),
-                                    )
-                                    if (!item.itemTextDesc.isNullOrEmpty()) {
-                                        Text(
-                                            text = item.itemTextDesc,
-                                            modifier = Modifier.wrapContentWidth()
-                                        )
                                     }
-                                }
-                            } else if (item.itemIconSymbol != null) {
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Center,
-                                    modifier = Modifier
-                                        .padding(4.dp)
-                                        .then(
-                                            if (item.isFullExpand) Modifier
-                                                .fillMaxWidth()
-                                                .weight(1f)
-                                            else Modifier.wrapContentWidth()
-                                        )
-                                        .background(
-                                            if (item.isEnable)
-                                                keyboardBgColor
-                                            else
-                                                keyboardBgColor.copy(0.3f), RoundedCornerShape(6.dp)
-                                        )
-                                        .then(
-                                            if (index > 0) {
-                                                if (item.itemTextDesc.isNullOrEmpty())
-                                                    Modifier.padding(22.dp)
+                                } else if (item.itemIconSymbol != null) {
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.Center,
+                                        modifier = Modifier
+                                            .padding(4.dp)
+                                            .then(
+                                                if (item.isFullExpand) Modifier
+                                                    .fillMaxWidth()
+                                                    .weight(1f)
+                                                else Modifier.wrapContentWidth()
+                                            )
+                                            .background(
+                                                if (item.isEnable)
+                                                    keyboardBgColor
                                                 else
-                                                    Modifier.padding(11.dp)
-                                            } else {
-                                                Modifier.padding(top = 5.dp, bottom = 5.dp)
-                                            }
-                                        )
-                                        .clickable {
-                                            if (!item.isEnable) return@clickable
+                                                    keyboardBgColor.copy(0.3f),
+                                                RoundedCornerShape(6.dp)
+                                            )
+                                            .then(
+                                                if (index > 0) {
+                                                    if (item.itemTextDesc.isNullOrEmpty())
+                                                        Modifier.padding(22.dp)
+                                                    else
+                                                        Modifier.padding(11.dp)
+                                                } else {
+                                                    Modifier.padding(top = 5.dp, bottom = 5.dp)
+                                                }
+                                            )
+                                            .clickable {
+                                                if (!item.isEnable) return@clickable
 
-                                            when (item.itemValue) {
-                                                "_del_" -> {
-                                                    currentTypingResult =
-                                                        currentTypingResult.dropLast(1)
+                                                when (item.itemValue) {
+                                                    "_del_" -> {
+                                                        currentTypingResult =
+                                                            currentTypingResult.dropLast(1)
 
-                                                    val maskingText =
-                                                        if (keyboardType == KeyboardInputType.PASSWORD_NUMBER) {
-                                                            "*".repeat(currentTypingResult.length)
-                                                        } else {
+                                                        val maskingText =
+                                                            if (keyboardType == KeyboardInputType.PASSWORD_NUMBER) {
+                                                                "*".repeat(currentTypingResult.length)
+                                                            } else {
+                                                                currentTypingResult
+                                                            }
+                                                        onTextValueChange(
+                                                            maskingText,
                                                             currentTypingResult
-                                                        }
-                                                    onTextValueChange(
-                                                        maskingText,
-                                                        currentTypingResult
-                                                    )
-                                                }
+                                                        )
+                                                    }
 
-                                                "_done_" -> {
-                                                    onDismiss(!isKeyboardShow)
+                                                    "_done_" -> {
+                                                        onDismiss(!isKeyboardShow)
+                                                    }
                                                 }
                                             }
-                                        }
-                                ) {
-                                    Icon(
-                                        imageVector = item.itemIconSymbol,
-                                        contentDescription = null,
-                                        tint = if (item.isEnable) keyboardTextColor else keyboardTextColor.copy(0.3f),
-                                    )
-                                    if (!item.itemTextDesc.isNullOrEmpty()) {
-                                        Text(
-                                            text = item.itemTextDesc,
-                                            modifier = Modifier.wrapContentWidth()
+                                    ) {
+                                        Icon(
+                                            imageVector = item.itemIconSymbol,
+                                            contentDescription = null,
+                                            tint = if (item.isEnable) keyboardTextColor else keyboardTextColor.copy(0.3f),
                                         )
+                                        if (!item.itemTextDesc.isNullOrEmpty()) {
+                                            Text(
+                                                text = item.itemTextDesc,
+                                                modifier = Modifier.wrapContentWidth()
+                                            )
+                                        }
                                     }
                                 }
                             }
