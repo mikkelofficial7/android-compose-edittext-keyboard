@@ -154,11 +154,11 @@ fun customEditTextWithKeyboard(
                         keyboardType,
                         text,
                         isKeyboardShow = isKeyboardShow,
-                        isAllCaps = true,
+                        isAllCaps = isAllCaps,
                         maxLine = maxLine,
                         onTextValueChange = { masking, real ->
-                            text = if (isAllCaps) real.uppercase() else if (isLowerText) real.lowercase() else real
-                            maskingText = if (isAllCaps) masking.uppercase() else if (isLowerText) masking.lowercase() else masking
+                            text = real
+                            maskingText = masking
 
                             onTextValueChange(maskingText, text)
                         },
@@ -173,8 +173,8 @@ fun customEditTextWithKeyboard(
                         text,
                         isKeyboardShow = isKeyboardShow,
                         onTextValueChange = { masking, real ->
-                            text = if (isAllCaps) real.uppercase() else if (isLowerText) real.lowercase() else real
-                            maskingText = if (isAllCaps) masking.uppercase() else if (isLowerText) masking.lowercase() else masking
+                            text = real
+                            maskingText = masking
 
                             onTextValueChange(maskingText, text)
                         },
@@ -730,9 +730,10 @@ private fun showingCustomTextKeyboard(
                             }
                         ) {
                             oneRowItem.forEach { item ->
+                                val itemValue = if (isAllCapsState) item.itemValue.uppercase() else item.itemValue.lowercase()
+
                                 if (!item.itemTextSymbol.isNullOrEmpty()) {
-                                    val formattedDisplay =
-                                        if (isAllCapsState) item.itemTextSymbol.uppercase() else item.itemTextSymbol.lowercase()
+                                    val formattedDisplay = if (isAllCapsState) item.itemTextSymbol.uppercase() else item.itemTextSymbol.lowercase()
 
                                     Text(
                                         text = formattedDisplay,
@@ -770,7 +771,7 @@ private fun showingCustomTextKeyboard(
                                                     }
 
                                                     else -> {
-                                                        currentTypingResult += item.itemValue
+                                                        currentTypingResult += itemValue
 
                                                         val maskingText =
                                                             if (keyboardType == KeyboardInputType.PASSWORD_TEXT) {
@@ -815,7 +816,7 @@ private fun showingCustomTextKeyboard(
                                             .clickable {
                                                 if (!item.isEnable) return@clickable
 
-                                                when (item.itemValue) {
+                                                when (item.itemValue.lowercase()) {
                                                     "_del_" -> {
                                                         currentTypingResult =
                                                             currentTypingResult.dropLast(1)
@@ -851,7 +852,7 @@ private fun showingCustomTextKeyboard(
                                                         val newlineCount =
                                                             currentTypingResult.count { it == '\n' }
                                                         if (newlineCount < maxLine) {
-                                                            currentTypingResult += item.itemValue
+                                                            currentTypingResult += itemValue
 
                                                             val maskingText =
                                                                 if (keyboardType == KeyboardInputType.PASSWORD_TEXT) {
