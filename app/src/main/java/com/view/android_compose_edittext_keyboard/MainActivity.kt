@@ -10,6 +10,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import com.view.android_compose_edittext_keyboard.ui.theme.AndroidcomposeedittextkeyboardTheme
 import com.view.compose_keyboard_edittext.customEditTextWithKeyboard
+import com.view.compose_keyboard_edittext.enums.KeyboardInputType
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -22,13 +23,12 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     Column {
-                        customEditTextWithKeyboard()
-                        customEditTextWithKeyboard()
-                        customEditTextWithKeyboard()
-                        customEditTextWithKeyboard()
-                        customEditTextWithKeyboard()
-                        customEditTextWithKeyboard()
-                        customEditTextWithKeyboard()
+                        customEditTextWithKeyboard(hintText = "input type text", keyboardType = KeyboardInputType.TEXT)
+                        customEditTextWithKeyboard(hintText = "input type email", keyboardType = KeyboardInputType.EMAIL)
+                        customEditTextWithKeyboard(hintText = "input type number", keyboardType = KeyboardInputType.NUMBER)
+                        customEditTextWithKeyboard(hintText = "input type phone", keyboardType = KeyboardInputType.PHONE)
+                        customEditTextWithKeyboard(hintText = "input type password number", keyboardType = KeyboardInputType.PASSWORD_NUMBER)
+                        customEditTextWithKeyboard(hintText = "input type password text", keyboardType = KeyboardInputType.PASSWORD_TEXT)
                     }
                 }
             }

@@ -14,15 +14,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,8 +33,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
@@ -86,11 +87,14 @@ fun customEditTextWithKeyboard(
     Box(
         modifier = Modifier
     ) {
+        val scrollTextBoxInsideState = rememberScrollState()
+
         Box(
             modifier = Modifier
                 .padding(8.dp)
                 .then(if (isFullWidth) Modifier.fillMaxWidth() else Modifier.width(width.dp))
                 .height(height.dp)
+                .heightIn(max = height.dp)
                 .border(
                     borderSize.dp,
                     Color(ContextCompat.getColor(context, borderColor)),
@@ -122,7 +126,9 @@ fun customEditTextWithKeyboard(
                 }
             }
 
-            Box {
+            Box(
+                Modifier.verticalScroll(scrollTextBoxInsideState)
+            ) {
                 if (maskingText.isEmpty()) {
                     Text(
                         text = hintText,
@@ -183,7 +189,7 @@ fun customEditTextWithKeyboard(
 }
 
 @Composable
-fun showingCustomTextKeyboard(
+private fun showingCustomTextKeyboard(
     context: Context,
     keyboardType: KeyboardInputType,
     initialValue: String,
@@ -198,7 +204,7 @@ fun showingCustomTextKeyboard(
     }
 
     var isAllCapsState by remember { mutableStateOf(isAllCaps) }
-    var alphabetOrSpecialCharState by remember { mutableStateOf(KeyboardItemSymbol.ALPHABET) }
+    var alphabetOrSpecialCharState by remember { mutableStateOf(KeyboardItemSymbol.ALPHABET_OR_NUMBER) }
     var currentTypingResult by remember { mutableStateOf(initialValue) }
 
     val normalSymbol: ArrayList<ArrayList<KeyboardComponent>> = arrayListOf()
@@ -311,7 +317,7 @@ fun showingCustomTextKeyboard(
     val qwertyRows3 = remember {
         arrayListOf(
             KeyboardComponent(
-                itemIconSymbol = Icons.Filled.KeyboardArrowUp,
+                itemIconSymbol = R.drawable.ic_caps,
                 itemValue = "_caps_",
                 isEnable = true
             ),
@@ -351,7 +357,7 @@ fun showingCustomTextKeyboard(
                 isEnable = true
             ),
             KeyboardComponent(
-                itemIconSymbol = Icons.Filled.ArrowBack,
+                itemIconSymbol = R.drawable.ic_backspace,
                 itemValue = "_del_",
                 isEnable = true
             )
@@ -372,8 +378,8 @@ fun showingCustomTextKeyboard(
             KeyboardComponent(
                 itemTextSymbol = " ",
                 itemValue = " ",
-                isFullExpand = true,
-                isEnable = keyboardType != KeyboardInputType.PASSWORD_TEXT
+                weightFullSection = 2,
+                isEnable = !(keyboardType == KeyboardInputType.PASSWORD_TEXT || keyboardType == KeyboardInputType.EMAIL)
             ),
             KeyboardComponent(
                 itemTextSymbol = ".",
@@ -381,9 +387,10 @@ fun showingCustomTextKeyboard(
                 isEnable = true
             ),
             KeyboardComponent(
-                itemTextSymbol = "Enter",
+                itemIconSymbol = R.drawable.ic_enter,
                 itemValue = "\n",
-                isEnable = keyboardType != KeyboardInputType.PASSWORD_TEXT
+                weightFullSection = 1,
+                isEnable = !(keyboardType == KeyboardInputType.PASSWORD_TEXT || keyboardType == KeyboardInputType.EMAIL)
             )
         )
     }
@@ -452,14 +459,12 @@ fun showingCustomTextKeyboard(
         arrayListOf(
             KeyboardComponent(
                 itemTextSymbol = "`",
-                itemValue = "`",
-                isFullExpand = false
+                itemValue = "`"
             ),
             KeyboardComponent(
                 itemTextSymbol = "@",
                 itemValue = "@",
-                isEnable = keyboardType == KeyboardInputType.EMAIL,
-                isFullExpand = false
+                isEnable = keyboardType == KeyboardInputType.EMAIL
             ),
             KeyboardComponent(
                 itemTextSymbol = "!",
@@ -508,12 +513,10 @@ fun showingCustomTextKeyboard(
             KeyboardComponent(
                 itemTextSymbol = "(",
                 itemValue = "(",
-                isFullExpand = false
             ),
             KeyboardComponent(
                 itemTextSymbol = ")",
-                itemValue = ")",
-                isFullExpand = false
+                itemValue = ")"
             ),
             KeyboardComponent(
                 itemTextSymbol = "_",
@@ -561,13 +564,11 @@ fun showingCustomTextKeyboard(
         arrayListOf(
             KeyboardComponent(
                 itemTextSymbol = "{",
-                itemValue = "{",
-                isFullExpand = false
+                itemValue = "{"
             ),
             KeyboardComponent(
                 itemTextSymbol = "}",
-                itemValue = "}",
-                isFullExpand = false
+                itemValue = "}"
             ),
             KeyboardComponent(
                 itemTextSymbol = "\"",
@@ -620,34 +621,31 @@ fun showingCustomTextKeyboard(
         arrayListOf(
             KeyboardComponent(
                 itemTextSymbol = "abc",
-                itemValue = "abc",
-                isFullExpand = false
+                itemValue = "abc"
             ),
             KeyboardComponent(
                 itemTextSymbol = "[",
-                itemValue = "[",
-                isFullExpand = false
+                itemValue = "["
             ),
             KeyboardComponent(
                 itemTextSymbol = "]",
-                itemValue = "]",
-                isFullExpand = false
+                itemValue = "]"
             ),
             KeyboardComponent(
                 itemTextSymbol = " ",
                 itemValue = " ",
-                isFullExpand = true,
-                isEnable = keyboardType != KeyboardInputType.PASSWORD_TEXT
+                weightFullSection = 2,
+                isEnable = !(keyboardType == KeyboardInputType.PASSWORD_TEXT || keyboardType == KeyboardInputType.EMAIL)
             ),
             KeyboardComponent(
-                itemIconSymbol = Icons.Filled.ArrowBack,
-                itemValue = "_del_",
-                isFullExpand = false
+                itemIconSymbol = R.drawable.ic_backspace,
+                itemValue = "_del_"
             ),
             KeyboardComponent(
-                itemTextSymbol = "Enter",
+                itemIconSymbol = R.drawable.ic_enter,
                 itemValue = "\n",
-                isEnable = keyboardType != KeyboardInputType.PASSWORD_TEXT
+                weightFullSection = 1,
+                isEnable = !(keyboardType == KeyboardInputType.PASSWORD_TEXT || keyboardType == KeyboardInputType.EMAIL)
             )
         )
     }
@@ -694,19 +692,34 @@ fun showingCustomTextKeyboard(
                         .padding(top = 20.dp, bottom = 5.dp),
                     verticalArrangement = Arrangement.Bottom
                 ) {
-                    val symbolList = if (alphabetOrSpecialCharState == KeyboardItemSymbol.ALPHABET)
+                    val symbolList = if (alphabetOrSpecialCharState == KeyboardItemSymbol.ALPHABET_OR_NUMBER)
                         normalSymbol
                     else
                         specialSymbol
 
                     Row {
-                        Text(
-                            text = if (keyboardType != KeyboardInputType.PASSWORD_TEXT) currentTypingResult else "",
+                        val scrollTextBoxInsideState = rememberScrollState()
+
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(10.dp),
-                            textAlign = TextAlign.Center
-                        )
+                                .padding(10.dp)
+                                .border(1.dp, Color.Gray, RoundedCornerShape(4.dp))
+                                .heightIn(max = 100.dp)
+                                .padding(8.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .verticalScroll(scrollTextBoxInsideState)
+                            ) {
+                                Text(
+                                    text = if (keyboardType != KeyboardInputType.PASSWORD_TEXT) currentTypingResult
+                                    else "*".repeat(currentTypingResult.length),
+                                    textAlign = TextAlign.Start
+                                )
+                            }
+                        }
                     }
                     symbolList.forEachIndexed { index, oneRowItem ->
                         Row(
@@ -736,10 +749,11 @@ fun showingCustomTextKeyboard(
                                             )
                                             .padding(11.dp)
                                             .then(
-                                                if (item.isFullExpand) Modifier
+                                                if (item.weightFullSection == null)
+                                                    Modifier.wrapContentWidth()
+                                                else Modifier
                                                     .fillMaxWidth()
-                                                    .weight(1f)
-                                                else Modifier.wrapContentWidth()
+                                                    .weight(item.weightFullSection.toFloat())
                                             )
                                             .clickable {
                                                 if (!item.isEnable) return@clickable
@@ -752,26 +766,7 @@ fun showingCustomTextKeyboard(
 
                                                     "abc" -> {
                                                         alphabetOrSpecialCharState =
-                                                            KeyboardItemSymbol.ALPHABET
-                                                    }
-
-                                                    "Enter" -> {
-                                                        val newlineCount =
-                                                            currentTypingResult.count { it == '\n' }
-                                                        if (newlineCount < maxLine) {
-                                                            currentTypingResult += item.itemValue
-
-                                                            val maskingText =
-                                                                if (keyboardType == KeyboardInputType.PASSWORD_TEXT) {
-                                                                    "*".repeat(currentTypingResult.length)
-                                                                } else {
-                                                                    currentTypingResult
-                                                                }
-                                                            onTextValueChange(
-                                                                maskingText,
-                                                                currentTypingResult
-                                                            )
-                                                        }
+                                                            KeyboardItemSymbol.ALPHABET_OR_NUMBER
                                                     }
 
                                                     else -> {
@@ -792,8 +787,10 @@ fun showingCustomTextKeyboard(
                                             }
                                     )
                                 } else if (item.itemIconSymbol != null) {
+                                    val imageVector = ImageVector.vectorResource(id = item.itemIconSymbol)
+
                                     Icon(
-                                        imageVector = item.itemIconSymbol,
+                                        imageVector = imageVector,
                                         contentDescription = null,
                                         tint = if (item.isEnable) keyboardTextColor else keyboardTextColor.copy(
                                             0.3f
@@ -801,10 +798,11 @@ fun showingCustomTextKeyboard(
                                         modifier = Modifier
                                             .height(50.dp)
                                             .then(
-                                                if (item.isFullExpand) Modifier
+                                                if (item.weightFullSection == null)
+                                                    Modifier.wrapContentWidth()
+                                                else Modifier
                                                     .fillMaxWidth()
-                                                    .weight(1f)
-                                                else Modifier.wrapContentWidth()
+                                                    .weight(item.weightFullSection.toFloat())
                                             )
                                             .padding(1.dp)
                                             .background(
@@ -848,6 +846,25 @@ fun showingCustomTextKeyboard(
                                                             currentTypingResult
                                                         )
                                                     }
+
+                                                    "\n" -> {
+                                                        val newlineCount =
+                                                            currentTypingResult.count { it == '\n' }
+                                                        if (newlineCount < maxLine) {
+                                                            currentTypingResult += item.itemValue
+
+                                                            val maskingText =
+                                                                if (keyboardType == KeyboardInputType.PASSWORD_TEXT) {
+                                                                    "*".repeat(currentTypingResult.length)
+                                                                } else {
+                                                                    currentTypingResult
+                                                                }
+                                                            onTextValueChange(
+                                                                maskingText,
+                                                                currentTypingResult
+                                                            )
+                                                        }
+                                                    }
                                                 }
                                             }
                                     )
@@ -862,7 +879,7 @@ fun showingCustomTextKeyboard(
 }
 
 @Composable
-fun showingCustomNumberKeyboard(
+private fun showingCustomNumberKeyboard(
     context: Context,
     keyboardType: KeyboardInputType,
     initialValue: String,
@@ -876,157 +893,94 @@ fun showingCustomNumberKeyboard(
 
     var currentTypingResult by remember { mutableStateOf(initialValue) }
     val phoneSymbol: ArrayList<ArrayList<KeyboardComponent>> = arrayListOf()
+    val phoneSpecialSymbol: ArrayList<ArrayList<KeyboardComponent>> = arrayListOf()
+    var alphabetOrSpecialCharState by remember { mutableStateOf(KeyboardItemSymbol.ALPHABET_OR_NUMBER) }
 
     val qwertyRows1 = remember {
         arrayListOf(
             KeyboardComponent(
-                itemTextSymbol = "*",
-                itemTextDesc = "",
-                itemValue = "*",
-                isEnable = keyboardType != KeyboardInputType.NUMBER,
-                isFullExpand = true
+                itemTextSymbol = "1",
+                itemValue = "1",
+                isEnable = true,
+                weightFullSection = 1
             ),
             KeyboardComponent(
-                itemTextSymbol = "#",
-                itemTextDesc = "",
-                itemValue = "#",
-                isEnable = keyboardType != KeyboardInputType.NUMBER,
-                isFullExpand = true
+                itemTextSymbol = "2",
+                itemValue = "2",
+                isEnable = true,
+                weightFullSection = 1
             ),
             KeyboardComponent(
-                itemTextSymbol = "+",
-                itemTextDesc = "",
-                itemValue = "+",
-                isEnable = keyboardType != KeyboardInputType.NUMBER,
-                isFullExpand = true
+                itemTextSymbol = "3",
+                itemValue = "3",
+                isEnable = true,
+                weightFullSection = 1
             )
         )
     }
     val qwertyRows2 = remember {
         arrayListOf(
             KeyboardComponent(
-                itemTextSymbol = "1",
-                itemTextDesc = " ",
-                itemValue = "1",
+                itemTextSymbol = "4",
+                itemValue = "4",
                 isEnable = true,
-                isFullExpand = true
+                weightFullSection = 1
             ),
             KeyboardComponent(
-                itemTextSymbol = "2",
-                itemTextDesc = "abc",
-                itemValue = "2",
+                itemTextSymbol = "5",
+                itemValue = "5",
                 isEnable = true,
-                isFullExpand = true
+                weightFullSection = 1
             ),
             KeyboardComponent(
-                itemTextSymbol = "3",
-                itemTextDesc = "def",
-                itemValue = "3",
+                itemTextSymbol = "6",
+                itemValue = "6",
                 isEnable = true,
-                isFullExpand = true
-            ),
-            KeyboardComponent(
-                itemTextSymbol = "-",
-                itemValue = "-",
-                itemTextDesc = "",
-                isEnable = keyboardType != KeyboardInputType.NUMBER,
-                isFullExpand = true
+                weightFullSection = 1
             )
         )
     }
     val qwertyRows3 = remember {
         arrayListOf(
             KeyboardComponent(
-                itemTextSymbol = "4",
-                itemTextDesc = "ghi",
-                itemValue = "4",
+                itemTextSymbol = "7",
+                itemValue = "7",
                 isEnable = true,
-                isFullExpand = true
+                weightFullSection = 1
             ),
             KeyboardComponent(
-                itemTextSymbol = "5",
-                itemTextDesc = "jkl",
-                itemValue = "5",
+                itemTextSymbol = "8",
+                itemValue = "8",
                 isEnable = true,
-                isFullExpand = true
+                weightFullSection = 1
             ),
             KeyboardComponent(
-                itemTextSymbol = "6",
-                itemTextDesc = "mno",
-                itemValue = "6",
+                itemTextSymbol = "9",
+                itemValue = "9",
                 isEnable = true,
-                isFullExpand = true
-            ),
-            KeyboardComponent(
-                itemTextSymbol = "_",
-                itemValue = "_",
-                itemTextDesc = "",
-                isEnable = keyboardType != KeyboardInputType.NUMBER,
-                isFullExpand = true
+                weightFullSection = 1
             )
         )
     }
     val qwertyRows4 = remember {
         arrayListOf(
             KeyboardComponent(
-                itemTextSymbol = "7",
-                itemTextDesc = "pqrs",
-                itemValue = "7",
-                isEnable = true,
-                isFullExpand = true
-            ),
-            KeyboardComponent(
-                itemTextSymbol = "8",
-                itemTextDesc = "tuv",
-                itemValue = "8",
-                isEnable = true,
-                isFullExpand = true
-            ),
-            KeyboardComponent(
-                itemTextSymbol = "9",
-                itemTextDesc = "wxyz",
-                itemValue = "9",
-                isEnable = true,
-                isFullExpand = true
-            ),
-            KeyboardComponent(
-                itemIconSymbol = Icons.Default.ArrowBack,
-                itemValue = "_del_",
-                isEnable = true,
-                itemTextDesc = "",
-                isFullExpand = true
-            )
-        )
-    }
-    val qwertyRows5 = remember {
-        arrayListOf(
-            KeyboardComponent(
-                itemTextSymbol = ".",
-                itemTextDesc = "",
-                itemValue = ".",
+                itemTextSymbol = "+*#",
+                itemValue = "+*#",
                 isEnable = keyboardType != KeyboardInputType.NUMBER,
-                isFullExpand = true
+                weightFullSection = 1
             ),
             KeyboardComponent(
                 itemTextSymbol = "0",
-                itemTextDesc = "",
                 itemValue = "0",
                 isEnable = true,
-                isFullExpand = true
+                weightFullSection = 1
             ),
             KeyboardComponent(
-                itemTextSymbol = ",",
-                itemTextDesc = "",
-                itemValue = ",",
-                isEnable = keyboardType != KeyboardInputType.NUMBER,
-                isFullExpand = true
-            ),
-            KeyboardComponent(
-                itemIconSymbol = Icons.Default.CheckCircle,
-                itemValue = "_done_",
-                itemTextDesc = "",
+                itemIconSymbol = R.drawable.ic_backspace,
+                itemValue = "_del_",
                 isEnable = true,
-                isFullExpand = true
+                weightFullSection = 1
             )
         )
     }
@@ -1035,7 +989,100 @@ fun showingCustomNumberKeyboard(
     phoneSymbol.add(qwertyRows2)
     phoneSymbol.add(qwertyRows3)
     phoneSymbol.add(qwertyRows4)
-    phoneSymbol.add(qwertyRows5)
+
+    val qwertySpecialRows1 = remember {
+        arrayListOf(
+            KeyboardComponent(
+                itemTextSymbol = ".",
+                itemValue = ".",
+                isEnable = true,
+                weightFullSection = 1
+            ),
+            KeyboardComponent(
+                itemTextSymbol = ",",
+                itemValue = ",",
+                isEnable = true,
+                weightFullSection = 1
+            ),
+            KeyboardComponent(
+                itemTextSymbol = "-",
+                itemValue = "-",
+                isEnable = true,
+                weightFullSection = 1
+            )
+        )
+    }
+    val qwertySpecialRows2 = remember {
+        arrayListOf(
+            KeyboardComponent(
+                itemTextSymbol = "+",
+                itemValue = "+",
+                isEnable = true,
+                weightFullSection = 1
+            ),
+            KeyboardComponent(
+                itemTextSymbol = "*",
+                itemValue = "*",
+                isEnable = true,
+                weightFullSection = 1
+            ),
+            KeyboardComponent(
+                itemTextSymbol = "#",
+                itemValue = "#",
+                isEnable = true,
+                weightFullSection = 1
+            )
+        )
+    }
+    val qwertySpecialRows3 = remember {
+        arrayListOf(
+            KeyboardComponent(
+                itemIconSymbol = R.drawable.ic_spacebar,
+                itemValue = " ",
+                isEnable = keyboardType != KeyboardInputType.PASSWORD_NUMBER,
+                weightFullSection = 1
+            ),
+            KeyboardComponent(
+                itemTextSymbol = " ",
+                itemValue = "",
+                isEnable = false,
+                weightFullSection = 1
+            ),
+            KeyboardComponent(
+                itemTextSymbol = " ",
+                itemValue = "",
+                isEnable = false,
+                weightFullSection = 1
+            )
+        )
+    }
+    val qwertySpecialRows4 = remember {
+        arrayListOf(
+            KeyboardComponent(
+                itemTextSymbol = "123",
+                itemValue = "123",
+                isEnable = keyboardType != KeyboardInputType.NUMBER,
+                weightFullSection = 1
+            ),
+            KeyboardComponent(
+                itemTextSymbol = " ",
+                itemValue = "",
+                isEnable = false,
+                weightFullSection = 1
+            ),
+            KeyboardComponent(
+                itemIconSymbol = R.drawable.ic_backspace,
+                itemValue = "_del_",
+                isEnable = true,
+                weightFullSection = 1
+            )
+        )
+    }
+
+    phoneSpecialSymbol.add(qwertySpecialRows1)
+    phoneSpecialSymbol.add(qwertySpecialRows2)
+    phoneSpecialSymbol.add(qwertySpecialRows3)
+    phoneSpecialSymbol.add(qwertySpecialRows4)
 
     val keyboardBgColor = Color(ContextCompat.getColor(context, R.color.gray_c8c8c8))
     val keyboardTextColor = Color(ContextCompat.getColor(context, R.color.black))
@@ -1073,16 +1120,37 @@ fun showingCustomNumberKeyboard(
                     verticalArrangement = Arrangement.Bottom
                 ) {
                     Row {
-                        Text(
-                            text = if (keyboardType != KeyboardInputType.PASSWORD_NUMBER) currentTypingResult else "",
+                        val scrollTextBoxInsideState = rememberScrollState()
+
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(10.dp),
-                            textAlign = TextAlign.Center
-                        )
+                                .padding(10.dp)
+                                .border(1.dp, Color.Gray, RoundedCornerShape(4.dp))
+                                .heightIn(max = 100.dp)
+                                .padding(8.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .verticalScroll(scrollTextBoxInsideState)
+                            ) {
+                                Text(
+                                    text = if (keyboardType != KeyboardInputType.PASSWORD_NUMBER) currentTypingResult
+                                    else "*".repeat(currentTypingResult.length),
+                                    textAlign = TextAlign.Start
+                                )
+                            }
+                        }
                     }
 
-                    phoneSymbol.forEachIndexed { index, oneRowItem ->
+                    val listChar = if (alphabetOrSpecialCharState == KeyboardItemSymbol.ALPHABET_OR_NUMBER) {
+                        phoneSymbol
+                    } else {
+                        phoneSpecialSymbol
+                    }
+
+                    listChar.forEachIndexed { index, oneRowItem ->
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceEvenly
@@ -1095,13 +1163,8 @@ fun showingCustomNumberKeyboard(
                                         horizontalAlignment = Alignment.CenterHorizontally,
                                         verticalArrangement = Arrangement.Center,
                                         modifier = Modifier
+                                            .fillMaxWidth().weight(1f)
                                             .padding(4.dp)
-                                            .then(
-                                                if (item.isFullExpand) Modifier
-                                                    .fillMaxWidth()
-                                                    .weight(1f)
-                                                else Modifier.wrapContentWidth()
-                                            )
                                             .background(
                                                 if (item.isEnable)
                                                     keyboardBgColor
@@ -1109,30 +1172,33 @@ fun showingCustomNumberKeyboard(
                                                     keyboardBgColor.copy(0.3f),
                                                 RoundedCornerShape(6.dp)
                                             )
-                                            .then(
-                                                if (index > 0) {
-                                                    if (item.itemTextDesc.isNullOrEmpty())
-                                                        Modifier.padding(22.dp)
-                                                    else
-                                                        Modifier.padding(11.dp)
-                                                } else {
-                                                    Modifier.padding(top = 5.dp, bottom = 5.dp)
-                                                }
-                                            )
+                                            .padding(11.dp)
                                             .clickable {
                                                 if (!item.isEnable) return@clickable
-                                                currentTypingResult += item.itemValue
 
-                                                val maskingText =
-                                                    if (keyboardType == KeyboardInputType.PASSWORD_NUMBER) {
-                                                        "*".repeat(currentTypingResult.length)
-                                                    } else {
-                                                        currentTypingResult
+                                                when (item.itemValue) {
+                                                    "+*#" -> {
+                                                        alphabetOrSpecialCharState = KeyboardItemSymbol.SPECIAL
                                                     }
-                                                onTextValueChange(
-                                                    maskingText,
-                                                    currentTypingResult
-                                                )
+                                                    "123" -> {
+                                                        alphabetOrSpecialCharState = KeyboardItemSymbol.ALPHABET_OR_NUMBER
+                                                    }
+                                                    else -> {
+                                                        currentTypingResult += item.itemValue
+
+                                                        val maskingText =
+                                                            if (keyboardType == KeyboardInputType.PASSWORD_NUMBER) {
+                                                                "*".repeat(currentTypingResult.length)
+                                                            } else {
+                                                                currentTypingResult
+                                                            }
+
+                                                        onTextValueChange(
+                                                            maskingText,
+                                                            currentTypingResult
+                                                        )
+                                                    }
+                                                }
                                             }
                                     ) {
                                         Text(
@@ -1141,25 +1207,14 @@ fun showingCustomNumberKeyboard(
                                             textAlign = TextAlign.Center,
                                             color = if (item.isEnable) keyboardTextColor else keyboardTextColor.copy(0.3f),
                                         )
-                                        if (!item.itemTextDesc.isNullOrEmpty()) {
-                                            Text(
-                                                text = item.itemTextDesc,
-                                                modifier = Modifier.wrapContentWidth()
-                                            )
-                                        }
                                     }
                                 } else if (item.itemIconSymbol != null) {
                                     Column(
                                         horizontalAlignment = Alignment.CenterHorizontally,
                                         verticalArrangement = Arrangement.Center,
                                         modifier = Modifier
+                                            .fillMaxWidth().weight(1f)
                                             .padding(4.dp)
-                                            .then(
-                                                if (item.isFullExpand) Modifier
-                                                    .fillMaxWidth()
-                                                    .weight(1f)
-                                                else Modifier.wrapContentWidth()
-                                            )
                                             .background(
                                                 if (item.isEnable)
                                                     keyboardBgColor
@@ -1167,16 +1222,7 @@ fun showingCustomNumberKeyboard(
                                                     keyboardBgColor.copy(0.3f),
                                                 RoundedCornerShape(6.dp)
                                             )
-                                            .then(
-                                                if (index > 0) {
-                                                    if (item.itemTextDesc.isNullOrEmpty())
-                                                        Modifier.padding(22.dp)
-                                                    else
-                                                        Modifier.padding(11.dp)
-                                                } else {
-                                                    Modifier.padding(top = 5.dp, bottom = 5.dp)
-                                                }
-                                            )
+                                            .padding(11.dp)
                                             .clickable {
                                                 if (!item.isEnable) return@clickable
 
@@ -1196,24 +1242,31 @@ fun showingCustomNumberKeyboard(
                                                             currentTypingResult
                                                         )
                                                     }
+                                                    else -> {
+                                                        currentTypingResult += item.itemValue
 
-                                                    "_done_" -> {
-                                                        onDismiss(!isKeyboardShow)
+                                                        val maskingText =
+                                                            if (keyboardType == KeyboardInputType.PASSWORD_NUMBER) {
+                                                                "*".repeat(currentTypingResult.length)
+                                                            } else {
+                                                                currentTypingResult
+                                                            }
+
+                                                        onTextValueChange(
+                                                            maskingText,
+                                                            currentTypingResult
+                                                        )
                                                     }
                                                 }
                                             }
                                     ) {
+                                        val imageVector = ImageVector.vectorResource(id = item.itemIconSymbol)
+
                                         Icon(
-                                            imageVector = item.itemIconSymbol,
+                                            imageVector = imageVector,
                                             contentDescription = null,
                                             tint = if (item.isEnable) keyboardTextColor else keyboardTextColor.copy(0.3f),
                                         )
-                                        if (!item.itemTextDesc.isNullOrEmpty()) {
-                                            Text(
-                                                text = item.itemTextDesc,
-                                                modifier = Modifier.wrapContentWidth()
-                                            )
-                                        }
                                     }
                                 }
                             }

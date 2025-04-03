@@ -12,15 +12,14 @@ enum class KeyboardInputType {
 }
 
 enum class KeyboardItemSymbol {
-    ALPHABET, // showing button alphanumeric
+    ALPHABET_OR_NUMBER, // showing button alphanumeric
     SPECIAL // showing button special character
 }
 
 class KeyboardComponent(
     val itemTextSymbol: String? = null,
-    val itemTextDesc: String? = null,
-    val itemIconSymbol: ImageVector? = null,
+    val itemIconSymbol: Int? = null,
     val itemValue: String = "",
-    val isFullExpand: Boolean = false,
+    val weightFullSection: Int? = null,
     val isEnable: Boolean = true
 )
