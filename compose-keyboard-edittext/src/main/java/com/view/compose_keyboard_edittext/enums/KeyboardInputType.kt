@@ -8,7 +8,8 @@ enum class KeyboardInputType {
     TEXT,
     EMAIL,
     PASSWORD_TEXT,
-    PASSWORD_NUMBER
+    PASSWORD_NUMBER,
+    CURRENCY,
 }
 
 enum class KeyboardItemSymbol {
@@ -23,3 +24,10 @@ class KeyboardComponent(
     val weightFullSection: Int? = null,
     val isEnable: Boolean = true
 )
+
+enum class CurrencySymbolList(val abbreviation: String, val symbol: String) {
+    US("USD", "$"),
+    ID("IDR", "Rp"),
+    JP("JPY", "¥"),
+    EUR("EUR", "€"),
+}

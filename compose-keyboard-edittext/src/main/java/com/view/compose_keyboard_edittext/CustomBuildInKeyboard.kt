@@ -1,6 +1,7 @@
 package com.view.compose_keyboard_edittext
 
 import android.content.Context
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.annotation.ColorRes
 import androidx.compose.foundation.background
@@ -22,8 +23,15 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -33,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -45,16 +54,19 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
+import com.view.compose_keyboard_edittext.enums.CurrencySymbolList
 import com.view.compose_keyboard_edittext.enums.KeyboardComponent
 import com.view.compose_keyboard_edittext.enums.KeyboardInputType
 import com.view.compose_keyboard_edittext.enums.KeyboardItemSymbol
+import com.view.compose_keyboard_edittext.ext.convertToStringWithSeparator
+import com.view.compose_keyboard_edittext.ext.convertToStringWithoutSeparator
 import kotlinx.coroutines.delay
 
 @Composable
 fun customEditTextWithKeyboard(
     context: Context = LocalContext.current,
     defaultText: String = "",
-    hintText: String = "Enter text",
+    hintText: String = LocalContext.current.getString(R.string.default_hint),
     @ColorRes textColor: Int = R.color.black,
     @ColorRes hintColor: Int = R.color.gray_7a7a7a,
     @ColorRes bgColor: Int = R.color.gray,
@@ -166,7 +178,7 @@ fun customEditTextWithKeyboard(
                             isKeyboardShow = it
                         })
                 }
-                KeyboardInputType.NUMBER, KeyboardInputType.PHONE, KeyboardInputType.PASSWORD_NUMBER -> {
+                KeyboardInputType.NUMBER, KeyboardInputType.PHONE, KeyboardInputType.PASSWORD_NUMBER, KeyboardInputType.CURRENCY -> {
                     showingCustomNumberKeyboard(
                         context,
                         keyboardType,
@@ -892,11 +904,15 @@ private fun showingCustomNumberKeyboard(
         onDismiss(!isKeyboardShow)
     }
 
+    var alphabetOrSpecialCharState by remember { mutableStateOf(KeyboardItemSymbol.ALPHABET_OR_NUMBER) }
     var currentTypingResult by remember { mutableStateOf(initialValue) }
+    var defaultCurrencySymbol by remember { mutableStateOf(CurrencySymbolList.ID) }
+    var isChangeCurrencySymbol by remember { mutableStateOf(false) }
+
     val phoneSymbol: ArrayList<ArrayList<KeyboardComponent>> = arrayListOf()
     val phoneSpecialSymbol: ArrayList<ArrayList<KeyboardComponent>> = arrayListOf()
-    var alphabetOrSpecialCharState by remember { mutableStateOf(KeyboardItemSymbol.ALPHABET_OR_NUMBER) }
-
+    val currencySymbol: ArrayList<ArrayList<KeyboardComponent>> = arrayListOf()
+            
     val qwertyRows1 = remember {
         arrayListOf(
             KeyboardComponent(
@@ -990,6 +1006,124 @@ private fun showingCustomNumberKeyboard(
     phoneSymbol.add(qwertyRows2)
     phoneSymbol.add(qwertyRows3)
     phoneSymbol.add(qwertyRows4)
+
+    val currencyRows1 = remember {
+        arrayListOf(
+            KeyboardComponent(
+                itemTextSymbol = "1",
+                itemValue = "1",
+                isEnable = true,
+                weightFullSection = 1
+            ),
+            KeyboardComponent(
+                itemTextSymbol = "2",
+                itemValue = "2",
+                isEnable = true,
+                weightFullSection = 1
+            ),
+            KeyboardComponent(
+                itemTextSymbol = "3",
+                itemValue = "3",
+                isEnable = true,
+                weightFullSection = 1
+            ),
+            KeyboardComponent(
+                itemTextSymbol = "0000",
+                itemValue = "0000",
+                isEnable = true,
+                weightFullSection = 1
+            ),
+        )
+    }
+    val currencyRows2 = remember {
+        arrayListOf(
+            KeyboardComponent(
+                itemTextSymbol = "4",
+                itemValue = "4",
+                isEnable = true,
+                weightFullSection = 1
+            ),
+            KeyboardComponent(
+                itemTextSymbol = "5",
+                itemValue = "5",
+                isEnable = true,
+                weightFullSection = 1
+            ),
+            KeyboardComponent(
+                itemTextSymbol = "6",
+                itemValue = "6",
+                isEnable = true,
+                weightFullSection = 1
+            ),
+            KeyboardComponent(
+                itemTextSymbol = "000",
+                itemValue = "000",
+                isEnable = true,
+                weightFullSection = 1
+            )
+        )
+    }
+    val currencyRows3 = remember {
+        arrayListOf(
+            KeyboardComponent(
+                itemTextSymbol = "7",
+                itemValue = "7",
+                isEnable = true,
+                weightFullSection = 1
+            ),
+            KeyboardComponent(
+                itemTextSymbol = "8",
+                itemValue = "8",
+                isEnable = true,
+                weightFullSection = 1
+            ),
+            KeyboardComponent(
+                itemTextSymbol = "9",
+                itemValue = "9",
+                isEnable = true,
+                weightFullSection = 1
+            ),
+            KeyboardComponent(
+                itemTextSymbol = "00",
+                itemValue = "00",
+                isEnable = true,
+                weightFullSection = 1
+            )
+        )
+    }
+    val currencyRows4 = remember {
+        arrayListOf(
+            KeyboardComponent(
+                itemTextSymbol = "€/$/¥",
+                itemValue = "€/$/¥",
+                isEnable = true,
+                weightFullSection = 1
+            ),
+            KeyboardComponent(
+                itemTextSymbol = "0",
+                itemValue = "0",
+                isEnable = true,
+                weightFullSection = 1
+            ),
+            KeyboardComponent(
+                itemTextSymbol = ",",
+                itemValue = ",",
+                isEnable = false,
+                weightFullSection = 1
+            ),
+            KeyboardComponent(
+                itemIconSymbol = R.drawable.ic_backspace,
+                itemValue = "_del_",
+                isEnable = true,
+                weightFullSection = 1
+            )
+        )
+    }
+
+    currencySymbol.add(currencyRows1)
+    currencySymbol.add(currencyRows2)
+    currencySymbol.add(currencyRows3)
+    currencySymbol.add(currencyRows4)
 
     val qwertySpecialRows1 = remember {
         arrayListOf(
@@ -1120,154 +1254,196 @@ private fun showingCustomNumberKeyboard(
                         .padding(top = 20.dp, bottom = 5.dp),
                     verticalArrangement = Arrangement.Bottom
                 ) {
-                    Row {
-                        val scrollTextBoxInsideState = rememberScrollState()
+                    if (isChangeCurrencySymbol) {
+                        showDropdownCurrency(defaultCurrencySymbol) {
+                            defaultCurrencySymbol = it
+                            isChangeCurrencySymbol = !isChangeCurrencySymbol
+                        }
+                    } else {
+                        Row {
+                            val scrollTextBoxInsideState = rememberScrollState()
 
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(10.dp)
-                                .border(1.dp, Color.Gray, RoundedCornerShape(4.dp))
-                                .heightIn(max = 100.dp)
-                                .padding(8.dp)
-                        ) {
-                            Column(
+                            Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .verticalScroll(scrollTextBoxInsideState)
+                                    .padding(10.dp)
+                                    .border(1.dp, Color.Gray, RoundedCornerShape(4.dp))
+                                    .heightIn(max = 100.dp)
+                                    .padding(8.dp)
                             ) {
-                                Text(
-                                    text = if (keyboardType != KeyboardInputType.PASSWORD_NUMBER) currentTypingResult
-                                    else "*".repeat(currentTypingResult.length),
-                                    textAlign = TextAlign.Start
-                                )
-                            }
-                        }
-                    }
-
-                    val listChar = if (alphabetOrSpecialCharState == KeyboardItemSymbol.ALPHABET_OR_NUMBER) {
-                        phoneSymbol
-                    } else {
-                        phoneSpecialSymbol
-                    }
-
-                    listChar.forEachIndexed { index, oneRowItem ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceEvenly
-                        ) {
-                            oneRowItem.forEach { item ->
-                                if (!item.itemTextSymbol.isNullOrEmpty()) {
-                                    val formattedDisplay = item.itemTextSymbol
-
-                                    Column(
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                        verticalArrangement = Arrangement.Center,
-                                        modifier = Modifier
-                                            .fillMaxWidth().weight(1f)
-                                            .padding(4.dp)
-                                            .background(
-                                                if (item.isEnable)
-                                                    keyboardBgColor
-                                                else
-                                                    keyboardBgColor.copy(0.3f),
-                                                RoundedCornerShape(6.dp)
-                                            )
-                                            .padding(11.dp)
-                                            .clickable {
-                                                if (!item.isEnable) return@clickable
-
-                                                when (item.itemValue) {
-                                                    "+*#" -> {
-                                                        alphabetOrSpecialCharState = KeyboardItemSymbol.SPECIAL
-                                                    }
-                                                    "123" -> {
-                                                        alphabetOrSpecialCharState = KeyboardItemSymbol.ALPHABET_OR_NUMBER
-                                                    }
-                                                    else -> {
-                                                        currentTypingResult += item.itemValue
-
-                                                        val maskingText =
-                                                            if (keyboardType == KeyboardInputType.PASSWORD_NUMBER) {
-                                                                "*".repeat(currentTypingResult.length)
-                                                            } else {
-                                                                currentTypingResult
-                                                            }
-
-                                                        onTextValueChange(
-                                                            maskingText,
-                                                            currentTypingResult
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                    ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .verticalScroll(scrollTextBoxInsideState)
+                                ) {
+                                    if (keyboardType == KeyboardInputType.CURRENCY) {
                                         Text(
-                                            text = formattedDisplay,
-                                            fontSize = keyboardFontSize.sp,
-                                            textAlign = TextAlign.Center,
-                                            color = if (item.isEnable) keyboardTextColor else keyboardTextColor.copy(0.3f),
+                                            text = defaultCurrencySymbol.symbol,
+                                            modifier = Modifier.padding(end = 5.dp)
                                         )
                                     }
-                                } else if (item.itemIconSymbol != null) {
-                                    Column(
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                        verticalArrangement = Arrangement.Center,
-                                        modifier = Modifier
-                                            .fillMaxWidth().weight(1f)
-                                            .padding(4.dp)
-                                            .background(
-                                                if (item.isEnable)
-                                                    keyboardBgColor
-                                                else
-                                                    keyboardBgColor.copy(0.3f),
-                                                RoundedCornerShape(6.dp)
-                                            )
-                                            .padding(11.dp)
-                                            .clickable {
-                                                if (!item.isEnable) return@clickable
+                                    Text(
+                                        text = if (keyboardType != KeyboardInputType.PASSWORD_NUMBER) currentTypingResult
+                                        else "*".repeat(currentTypingResult.length),
+                                        textAlign = TextAlign.Start
+                                    )
+                                }
+                            }
+                        }
 
-                                                when (item.itemValue) {
-                                                    "_del_" -> {
-                                                        currentTypingResult =
-                                                            currentTypingResult.dropLast(1)
+                        val listChar = if (keyboardType == KeyboardInputType.CURRENCY) {
+                            currencySymbol
+                        } else if (alphabetOrSpecialCharState == KeyboardItemSymbol.ALPHABET_OR_NUMBER) {
+                            phoneSymbol
+                        } else {
+                            phoneSpecialSymbol
+                        }
 
-                                                        val maskingText =
-                                                            if (keyboardType == KeyboardInputType.PASSWORD_NUMBER) {
-                                                                "*".repeat(currentTypingResult.length)
+                        listChar.forEachIndexed { index, oneRowItem ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceEvenly
+                            ) {
+                                oneRowItem.forEach { item ->
+                                    if (!item.itemTextSymbol.isNullOrEmpty()) {
+                                        val formattedDisplay = item.itemTextSymbol
+
+                                        Column(
+                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                            verticalArrangement = Arrangement.Center,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .weight(1f)
+                                                .padding(4.dp)
+                                                .background(
+                                                    if (item.isEnable)
+                                                        keyboardBgColor
+                                                    else
+                                                        keyboardBgColor.copy(0.3f),
+                                                    RoundedCornerShape(6.dp)
+                                                )
+                                                .padding(11.dp)
+                                                .clickable {
+                                                    if (!item.isEnable) return@clickable
+
+                                                    when (item.itemValue) {
+                                                        "+*#" -> {
+                                                            alphabetOrSpecialCharState =
+                                                                KeyboardItemSymbol.SPECIAL
+                                                        }
+
+                                                        "123" -> {
+                                                            alphabetOrSpecialCharState =
+                                                                KeyboardItemSymbol.ALPHABET_OR_NUMBER
+                                                        }
+
+                                                        "€/$/¥" -> {
+                                                            isChangeCurrencySymbol = true
+                                                        }
+
+                                                        else -> {
+                                                            if (keyboardType == KeyboardInputType.CURRENCY) {
+                                                                val formWithoutSeparator =
+                                                                    currentTypingResult.convertToStringWithoutSeparator() + item.itemValue
+                                                                currentTypingResult =
+                                                                    formWithoutSeparator.convertToStringWithSeparator()
                                                             } else {
-                                                                currentTypingResult
-                                                            }
-                                                        onTextValueChange(
-                                                            maskingText,
-                                                            currentTypingResult
-                                                        )
-                                                    }
-                                                    else -> {
-                                                        currentTypingResult += item.itemValue
-
-                                                        val maskingText =
-                                                            if (keyboardType == KeyboardInputType.PASSWORD_NUMBER) {
-                                                                "*".repeat(currentTypingResult.length)
-                                                            } else {
-                                                                currentTypingResult
+                                                                currentTypingResult += item.itemValue
                                                             }
 
-                                                        onTextValueChange(
-                                                            maskingText,
-                                                            currentTypingResult
-                                                        )
+                                                            val maskingText =
+                                                                if (keyboardType == KeyboardInputType.PASSWORD_NUMBER) {
+                                                                    "*".repeat(currentTypingResult.length)
+                                                                } else {
+                                                                    currentTypingResult
+                                                                }
+
+                                                            onTextValueChange(
+                                                                maskingText,
+                                                                currentTypingResult
+                                                            )
+                                                        }
                                                     }
                                                 }
-                                            }
-                                    ) {
-                                        val imageVector = ImageVector.vectorResource(id = item.itemIconSymbol)
+                                        ) {
+                                            Text(
+                                                text = formattedDisplay,
+                                                fontSize = keyboardFontSize.sp,
+                                                textAlign = TextAlign.Center,
+                                                color = if (item.isEnable) keyboardTextColor else keyboardTextColor.copy(0.3f),
+                                            )
+                                        }
+                                    } else if (item.itemIconSymbol != null) {
+                                        Column(
+                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                            verticalArrangement = Arrangement.Center,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .weight(1f)
+                                                .padding(4.dp)
+                                                .background(
+                                                    if (item.isEnable)
+                                                        keyboardBgColor
+                                                    else
+                                                        keyboardBgColor.copy(0.3f),
+                                                    RoundedCornerShape(6.dp)
+                                                )
+                                                .padding(11.dp)
+                                                .clickable {
+                                                    if (!item.isEnable) return@clickable
 
-                                        Icon(
-                                            imageVector = imageVector,
-                                            contentDescription = null,
-                                            tint = if (item.isEnable) keyboardTextColor else keyboardTextColor.copy(0.3f),
-                                        )
+                                                    when (item.itemValue) {
+                                                        "_del_" -> {
+                                                            if (keyboardType == KeyboardInputType.CURRENCY) {
+                                                                val strWithoutSeparator =
+                                                                    currentTypingResult.convertToStringWithoutSeparator()
+                                                                val strWithSeparator =
+                                                                    strWithoutSeparator.dropLast(1)
+                                                                currentTypingResult =
+                                                                    strWithSeparator.convertToStringWithSeparator()
+                                                            } else {
+                                                                currentTypingResult =
+                                                                    currentTypingResult.dropLast(1)
+                                                            }
+
+                                                            val maskingText =
+                                                                if (keyboardType == KeyboardInputType.PASSWORD_NUMBER) {
+                                                                    "*".repeat(currentTypingResult.length)
+                                                                } else {
+                                                                    currentTypingResult
+                                                                }
+                                                            onTextValueChange(
+                                                                maskingText,
+                                                                currentTypingResult
+                                                            )
+                                                        }
+
+                                                        else -> {
+                                                            currentTypingResult += item.itemValue
+
+                                                            val maskingText =
+                                                                if (keyboardType == KeyboardInputType.PASSWORD_NUMBER) {
+                                                                    "*".repeat(currentTypingResult.length)
+                                                                } else {
+                                                                    currentTypingResult
+                                                                }
+
+                                                            onTextValueChange(
+                                                                maskingText,
+                                                                currentTypingResult
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                        ) {
+                                            val imageVector = ImageVector.vectorResource(id = item.itemIconSymbol)
+
+                                            Icon(
+                                                imageVector = imageVector,
+                                                contentDescription = null,
+                                                tint = if (item.isEnable) keyboardTextColor else keyboardTextColor.copy(0.3f),
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -1275,6 +1451,81 @@ private fun showingCustomNumberKeyboard(
                     }
                 }
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun showDropdownCurrency(defaultSymbol: CurrencySymbolList, onFinished: (CurrencySymbolList) -> Unit) {
+    val options = CurrencySymbolList.values().toList()
+    var expanded by remember { mutableStateOf(false) }
+    var selectedOptionText by remember { mutableStateOf(defaultSymbol) }
+
+    Column {
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = !expanded }
+        ) {
+            Box(
+                modifier = Modifier
+                    .padding(10.dp)
+                    .fillMaxWidth()
+                    .border(
+                        width = 1.dp,
+                        color = Color.Gray,
+                        shape = RoundedCornerShape(4.dp)
+                    )
+            ) {
+                TextField(
+                    value = "${selectedOptionText.abbreviation} (${selectedOptionText.symbol})",
+                    onValueChange = {},
+                    readOnly = true,
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded)
+                    },
+                    colors = TextFieldDefaults.textFieldColors(
+                        containerColor = Color.Transparent,
+                        disabledIndicatorColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
+                    ),
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth(),
+                    shape = RectangleShape // remove inner rounding
+                )
+            }
+
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                options.forEach { item ->
+                    DropdownMenuItem(
+                        onClick = {
+                            selectedOptionText = item
+                            expanded = false
+                        },
+                        text = {
+                            Text(
+                                text = "${item.abbreviation} - ${item.symbol}",
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+        }
+
+        Button(
+            onClick = { onFinished(selectedOptionText) },
+            shape = RectangleShape,
+            modifier = Modifier.padding(start = 10.dp)
+        ) {
+            Text(text = LocalContext.current.getString(R.string.default_btn_currency))
         }
     }
 }
