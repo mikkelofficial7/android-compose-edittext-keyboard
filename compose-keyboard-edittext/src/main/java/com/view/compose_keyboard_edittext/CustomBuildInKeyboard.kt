@@ -183,6 +183,7 @@ fun customEditTextWithKeyboard(
                         context,
                         keyboardType,
                         text,
+                        isShowCurrencySelection = false,
                         isKeyboardShow = isKeyboardShow,
                         onTextValueChange = { masking, real ->
                             text = real
@@ -892,11 +893,12 @@ private fun showingCustomTextKeyboard(
 }
 
 @Composable
-private fun showingCustomNumberKeyboard(
+fun showingCustomNumberKeyboard(
     context: Context,
     keyboardType: KeyboardInputType,
     initialValue: String,
     isKeyboardShow: Boolean,
+    isShowCurrencySelection: Boolean = false,
     onTextValueChange: (String, String) -> Unit = { masking, real -> },
     onDismiss: (Boolean) -> Unit = {}
 ) {
@@ -1096,7 +1098,7 @@ private fun showingCustomNumberKeyboard(
             KeyboardComponent(
                 itemTextSymbol = "€/$/¥",
                 itemValue = "€/$/¥",
-                isEnable = true,
+                isEnable = isShowCurrencySelection,
                 weightFullSection = 1
             ),
             KeyboardComponent(
@@ -1108,7 +1110,7 @@ private fun showingCustomNumberKeyboard(
             KeyboardComponent(
                 itemTextSymbol = ",",
                 itemValue = ",",
-                isEnable = false,
+                isEnable = true,
                 weightFullSection = 1
             ),
             KeyboardComponent(
