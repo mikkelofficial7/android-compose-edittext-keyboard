@@ -6,11 +6,11 @@
 
 Latest stable version: 
 
-[![](https://jitpack.io/v/mikkelofficial7/android-compose-edittext-keyboard.svg)](https://jitpack.io/#mikkelofficial7/android-compose-edittext-keyboard)
+[![](https://jitpack.io/v/mikkelofficial7/android-compose-edittext-keyboard.svg)](https://github.com/mikkelofficial7/android-compose-edittext-keyboard/releases/tag/v1.1)
 
 Deprecated/Previous version: 
 
-[![old version](https://img.shields.io/badge/JitPack-v1.0-f30a06)](https://github.com/mikkelofficial7/android-compose-edittext-keyboard)
+[![old version](https://img.shields.io/badge/JitPack-v1.0-f30a06)](https://github.com/mikkelofficial7/android-compose-edittext-keyboard/releases/tag/v1.0)
 
 How to use (Sample demo provided):
 
