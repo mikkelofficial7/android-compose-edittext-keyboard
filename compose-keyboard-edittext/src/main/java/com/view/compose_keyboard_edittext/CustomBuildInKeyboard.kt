@@ -80,6 +80,7 @@ fun customEditTextWithKeyboard(
     isAllCaps: Boolean = false,
     isLowerText: Boolean = false,
     isFullWidth: Boolean = true,
+    isShowCurrencyType: Boolean = false,
     maxLine: Int = 1,
     onTextValueChange: (String, String) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier
@@ -183,7 +184,7 @@ fun customEditTextWithKeyboard(
                         context,
                         keyboardType,
                         text,
-                        isShowCurrencySelection = false,
+                        isShowCurrencySelection = isShowCurrencyType,
                         isKeyboardShow = isKeyboardShow,
                         onTextValueChange = { masking, real ->
                             text = real
@@ -1278,7 +1279,7 @@ fun showingCustomNumberKeyboard(
                                         .fillMaxWidth()
                                         .verticalScroll(scrollTextBoxInsideState)
                                 ) {
-                                    if (keyboardType == KeyboardInputType.CURRENCY) {
+                                    if (isShowCurrencySelection && keyboardType == KeyboardInputType.CURRENCY) {
                                         Text(
                                             text = defaultCurrencySymbol.symbol,
                                             modifier = Modifier.padding(end = 5.dp)
