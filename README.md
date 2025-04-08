@@ -8,6 +8,10 @@ Latest stable version:
 
 [![](https://jitpack.io/v/mikkelofficial7/android-compose-edittext-keyboard.svg)](https://jitpack.io/#mikkelofficial7/android-compose-edittext-keyboard)
 
+Deprecated/Previous version: 
+
+[![old version](https://img.shields.io/badge/JitPack-v1.0-f30a06)](https://github.com/mikkelofficial7/android-compose-edittext-keyboard)
+
 How to use (Sample demo provided):
 
 1. Add this gradle in ```build.gradle(:app)``` :
@@ -67,6 +71,7 @@ keyboardType: KeyboardInputType,
 isAllCaps: Boolean, // true or false
 isLowerText: Boolean, // true or false
 isFullWidth: Boolean, // true or false
+isShowCurrencyType: Boolean = false, // for currency keyboard purpose, true or false
 maxLine: Int,
 onTextValueChange: (String, String) -> Unit, // if you want to get result typed
 modifier: Modifier = Modifier // other customize modifier (if necessary)
@@ -79,5 +84,6 @@ PHONE,
 TEXT,
 EMAIL,
 PASSWORD_TEXT,
-PASSWORD_NUMBER
+PASSWORD_NUMBER,
+CURRENCY
 ```
