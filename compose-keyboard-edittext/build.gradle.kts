@@ -44,7 +44,7 @@ publishing {
         create<MavenPublication>("release") {
             groupId = "com.github.mikkelofficial7"
             artifactId = "compose-keyboard-edittext"
-            version = "1.2"
+            version = "1.2.1"
 
             afterEvaluate {
                 from(components["release"])

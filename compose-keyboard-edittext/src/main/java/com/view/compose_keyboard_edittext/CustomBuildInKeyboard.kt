@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.annotation.ColorRes
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -31,6 +32,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -76,6 +78,10 @@ fun customEditTextWithKeyboard(
     @ColorRes hintColor: Int = R.color.gray_7a7a7a,
     @ColorRes bgColor: Int = R.color.gray,
     @ColorRes borderColor: Int = R.color.transparent,
+    @DrawableRes iconLeft: Int? = null,
+    @DrawableRes iconRight: Int? = null,
+    @ColorRes iconLeftTint: Int? = null,
+    @ColorRes iconRightTint: Int? = null,
     borderSize: Int = 1,
     textSize: Int = 16,
     cornerRadiusSize: Int = 8,
@@ -103,106 +109,129 @@ fun customEditTextWithKeyboard(
         }
     }
 
-    Box(
-        modifier = Modifier
-    ) {
-        val scrollTextBoxInsideState = rememberScrollState()
-
-        Box(
-            modifier = Modifier
-                .padding(8.dp)
-                .then(if (isFullWidth) Modifier.fillMaxWidth() else Modifier.width(width.dp))
-                .height(height.dp)
-                .heightIn(max = height.dp)
-                .border(
-                    borderSize.dp,
-                    Color(ContextCompat.getColor(context, borderColor)),
-                    shape = RoundedCornerShape(cornerRadiusSize.dp)
-                )
-                .background(
-                    Color(ContextCompat.getColor(context, bgColor)),
-                    shape = RoundedCornerShape(cornerRadiusSize.dp)
-                )
-                .clickable {
-                    isKeyboardShow = !isKeyboardShow
-                }
-                .then(modifier),
-            contentAlignment = Alignment.CenterStart
-        ) {
-            val formattedText = buildAnnotatedString {
-                if (maskingText.isEmpty() && cursorVisible && isKeyboardShow) {
-                    pushStyle(SpanStyle(color =  Color(ContextCompat.getColor(context, R.color.black))))
-                    append("|")
-                    pop()
-                }
-
-                append(if (maskingText.isEmpty()) "" else if (isAllCaps) maskingText.uppercase() else if (isLowerText) maskingText.lowercase() else maskingText)
-
-                if (maskingText.isNotEmpty() && cursorVisible && isKeyboardShow) {
-                    pushStyle(SpanStyle(color =  Color(ContextCompat.getColor(context, R.color.black))))
-                    append("|")
-                    pop()
-                }
-            }
-
-            Box(
-                Modifier.verticalScroll(scrollTextBoxInsideState)
-            ) {
-                if (maskingText.isEmpty()) {
-                    Text(
-                        text = hintText,
-                        color = Color(ContextCompat.getColor(context, hintColor)),
-                        fontSize = textSize.sp,
-                        modifier = Modifier.padding(horizontal = 12.dp)
-                    )
-                }
-                Text(
-                    text = formattedText,
-                    color = Color(ContextCompat.getColor(context, textColor)),
-                    fontSize = textSize.sp,
-                    modifier = Modifier.padding(horizontal = 12.dp)
-                )
-            }
+    Box(modifier = Modifier
+        .padding(8.dp)
+        .then(if (isFullWidth) Modifier.fillMaxWidth() else Modifier.width(width.dp))
+        .height(height.dp)
+        .heightIn(max = height.dp)
+        .border(
+            borderSize.dp,
+            Color(ContextCompat.getColor(context, borderColor)),
+            shape = RoundedCornerShape(cornerRadiusSize.dp)
+        )
+        .background(
+            Color(ContextCompat.getColor(context, bgColor)),
+            shape = RoundedCornerShape(cornerRadiusSize.dp)
+        )
+        .clickable {
+            isKeyboardShow = !isKeyboardShow
         }
+        .then(modifier),
+        contentAlignment = Alignment.CenterStart) {
 
-        if (isKeyboardShow) {
-            when (keyboardType) {
-                KeyboardInputType.TEXT, KeyboardInputType.EMAIL, KeyboardInputType.PASSWORD_TEXT -> {
-                    showingCustomTextKeyboard(
-                        context,
-                        keyboardType,
-                        text,
-                        isKeyboardShow = isKeyboardShow,
-                        isAllCaps = isAllCaps,
-                        maxLine = maxLine,
-                        onTextValueChange = { masking, real ->
-                            text = real
-                            maskingText = masking
+        Row(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            if (iconLeft != null) {
+                Icon(
+                    imageVector = ImageVector.vectorResource(iconLeft),
+                    contentDescription = "Icon Left",
+                    tint = if (iconLeftTint == null) LocalContentColor.current else Color(context.getColor(iconLeftTint)),
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+            ) {
+                val scrollTextBoxInsideState = rememberScrollState()
 
-                            onTextValueChange(maskingText, text)
-                        },
-                        onDismiss = {
-                            isKeyboardShow = it
-                        })
-                }
-                KeyboardInputType.NUMBER, KeyboardInputType.PHONE, KeyboardInputType.PASSWORD_NUMBER, KeyboardInputType.CURRENCY -> {
-                    showingCustomNumberKeyboard(
-                        context,
-                        keyboardType,
-                        text,
-                        isShowCurrencySelection = isShowCurrencyType,
-                        isKeyboardShow = isKeyboardShow,
-                        onTextValueChange = { masking, real ->
-                            text = real
-                            maskingText = masking
-
-                            onTextValueChange(maskingText, text)
-                        },
-                        onDismiss = {
-                            isKeyboardShow = it
+                Box{
+                    val formattedText = buildAnnotatedString {
+                        if (maskingText.isEmpty() && cursorVisible && isKeyboardShow) {
+                            pushStyle(SpanStyle(color =  Color(ContextCompat.getColor(context, R.color.black))))
+                            append("|")
+                            pop()
                         }
-                    )
+
+                        append(if (maskingText.isEmpty()) "" else if (isAllCaps) maskingText.uppercase() else if (isLowerText) maskingText.lowercase() else maskingText)
+
+                        if (maskingText.isNotEmpty() && cursorVisible && isKeyboardShow) {
+                            pushStyle(SpanStyle(color =  Color(ContextCompat.getColor(context, R.color.black))))
+                            append("|")
+                            pop()
+                        }
+                    }
+
+                    Box(
+                        Modifier.verticalScroll(scrollTextBoxInsideState)
+                    ) {
+                        if (maskingText.isEmpty()) {
+                            Text(
+                                text = hintText,
+                                color = Color(ContextCompat.getColor(context, hintColor)),
+                                fontSize = textSize.sp,
+                                modifier = Modifier.padding(horizontal = 12.dp)
+                            )
+                        }
+                        Text(
+                            text = formattedText,
+                            color = Color(ContextCompat.getColor(context, textColor)),
+                            fontSize = textSize.sp,
+                            modifier = Modifier.padding(horizontal = 12.dp)
+                        )
+                    }
                 }
+
+                if (isKeyboardShow) {
+                    when (keyboardType) {
+                        KeyboardInputType.TEXT, KeyboardInputType.EMAIL, KeyboardInputType.PASSWORD_TEXT -> {
+                            showingCustomTextKeyboard(
+                                context,
+                                keyboardType,
+                                text,
+                                isKeyboardShow = isKeyboardShow,
+                                isAllCaps = isAllCaps,
+                                maxLine = maxLine,
+                                onTextValueChange = { masking, real ->
+                                    text = real
+                                    maskingText = masking
+
+                                    onTextValueChange(maskingText, text)
+                                },
+                                onDismiss = {
+                                    isKeyboardShow = it
+                                })
+                        }
+                        KeyboardInputType.NUMBER, KeyboardInputType.PHONE, KeyboardInputType.PASSWORD_NUMBER, KeyboardInputType.CURRENCY -> {
+                            showingCustomNumberKeyboard(
+                                context,
+                                keyboardType,
+                                text,
+                                isShowCurrencySelection = isShowCurrencyType,
+                                isKeyboardShow = isKeyboardShow,
+                                onTextValueChange = { masking, real ->
+                                    text = real
+                                    maskingText = masking
+
+                                    onTextValueChange(maskingText, text)
+                                },
+                                onDismiss = {
+                                    isKeyboardShow = it
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+            if (iconRight != null) {
+                Icon(
+                    imageVector = ImageVector.vectorResource(iconRight),
+                    contentDescription = "Icon Right",
+                    tint = if (iconRightTint == null) LocalContentColor.current else Color(context.getColor(iconRightTint)),
+                    modifier = Modifier.padding(end = 8.dp)
+                )
             }
         }
     }
