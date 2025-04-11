@@ -19,11 +19,13 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -40,11 +42,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -81,6 +86,7 @@ fun customEditTextWithKeyboard(
     isLowerText: Boolean = false,
     isFullWidth: Boolean = true,
     isShowCurrencyType: Boolean = false,
+    isShowKeyboard: Boolean = false,
     maxLine: Int = 1,
     onTextValueChange: (String, String) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier
@@ -88,7 +94,7 @@ fun customEditTextWithKeyboard(
     var cursorVisible by remember { mutableStateOf(true) }
     var text by remember { mutableStateOf(defaultText) }
     var maskingText by remember { mutableStateOf(defaultText) }
-    var isKeyboardShow by remember { mutableStateOf(false) }
+    var isKeyboardShow by remember { mutableStateOf(isShowKeyboard) }
 
     LaunchedEffect(true) {
         while (true) {
@@ -220,6 +226,7 @@ private fun showingCustomTextKeyboard(
     var isAllCapsState by remember { mutableStateOf(isAllCaps) }
     var alphabetOrSpecialCharState by remember { mutableStateOf(KeyboardItemSymbol.ALPHABET_OR_NUMBER) }
     var currentTypingResult by remember { mutableStateOf(initialValue) }
+    var isPasswordShow by remember { mutableStateOf(false) }
 
     val normalSymbol: ArrayList<ArrayList<KeyboardComponent>> = arrayListOf()
     val specialSymbol: ArrayList<ArrayList<KeyboardComponent>> = arrayListOf()
@@ -722,16 +729,41 @@ private fun showingCustomTextKeyboard(
                                 .heightIn(max = 100.dp)
                                 .padding(8.dp)
                         ) {
-                            Column(
+                            Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .verticalScroll(scrollTextBoxInsideState)
+                                    .verticalScroll(scrollTextBoxInsideState),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = if (keyboardType != KeyboardInputType.PASSWORD_TEXT) currentTypingResult
-                                    else "*".repeat(currentTypingResult.length),
-                                    textAlign = TextAlign.Start
+                                    text = if (keyboardType != KeyboardInputType.PASSWORD_TEXT || isPasswordShow) {
+                                        currentTypingResult
+                                    } else "*".repeat(currentTypingResult.length),
+                                    textAlign = TextAlign.Start,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .weight(1f)
                                 )
+                                if (keyboardType == KeyboardInputType.PASSWORD_TEXT) {
+                                    Box(
+                                        modifier = Modifier
+                                            .padding(start = 5.dp)
+                                            .wrapContentWidth()
+                                            .wrapContentHeight()
+                                            .paint(
+                                                painter = painterResource(id = R.drawable.ic_square),
+                                                contentScale = ContentScale.FillBounds
+                                            )
+                                            .clickable { isPasswordShow = !isPasswordShow },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = if (isPasswordShow) ImageVector.vectorResource(R.drawable.ic_eye_closed) else ImageVector.vectorResource(R.drawable.ic_eye_open),
+                                            modifier = Modifier.padding(10.dp),
+                                            contentDescription = "Password eye"
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
@@ -806,10 +838,8 @@ private fun showingCustomTextKeyboard(
 
                                     Icon(
                                         imageVector = imageVector,
-                                        contentDescription = null,
-                                        tint = if (item.isEnable) keyboardTextColor else keyboardTextColor.copy(
-                                            0.3f
-                                        ),
+                                        contentDescription = "Item Keyboard",
+                                        tint = if (item.isEnable) keyboardTextColor else keyboardTextColor.copy(0.3f),
                                         modifier = Modifier
                                             .height(50.dp)
                                             .then(
@@ -819,7 +849,7 @@ private fun showingCustomTextKeyboard(
                                                     .fillMaxWidth()
                                                     .weight(item.weightFullSection.toFloat())
                                             )
-                                            .padding(1.dp)
+                                            .padding(4.dp)
                                             .background(
                                                 if (item.isEnable) keyboardBgColor else keyboardBgColor.copy(
                                                     0.3f
@@ -894,12 +924,12 @@ private fun showingCustomTextKeyboard(
 }
 
 @Composable
-fun showingCustomNumberKeyboard(
+private fun showingCustomNumberKeyboard(
     context: Context,
     keyboardType: KeyboardInputType,
     initialValue: String,
     isKeyboardShow: Boolean,
-    isShowCurrencySelection: Boolean = false,
+    isShowCurrencySelection: Boolean,
     onTextValueChange: (String, String) -> Unit = { masking, real -> },
     onDismiss: (Boolean) -> Unit = {}
 ) {
@@ -911,6 +941,7 @@ fun showingCustomNumberKeyboard(
     var currentTypingResult by remember { mutableStateOf(initialValue) }
     var defaultCurrencySymbol by remember { mutableStateOf(CurrencySymbolList.ID) }
     var isChangeCurrencySymbol by remember { mutableStateOf(false) }
+    var isPasswordShow by remember { mutableStateOf(false) }
 
     val phoneSymbol: ArrayList<ArrayList<KeyboardComponent>> = arrayListOf()
     val phoneSpecialSymbol: ArrayList<ArrayList<KeyboardComponent>> = arrayListOf()
@@ -1277,19 +1308,56 @@ fun showingCustomNumberKeyboard(
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .verticalScroll(scrollTextBoxInsideState)
+                                        .verticalScroll(scrollTextBoxInsideState),
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     if (isShowCurrencySelection && keyboardType == KeyboardInputType.CURRENCY) {
-                                        Text(
-                                            text = defaultCurrencySymbol.symbol,
-                                            modifier = Modifier.padding(end = 5.dp)
-                                        )
+                                        Box(
+                                            modifier = Modifier
+                                                .padding(end = 5.dp)
+                                                .wrapContentWidth()
+                                                .wrapContentHeight()
+                                                .paint(
+                                                    painter = painterResource(id = R.drawable.ic_square),
+                                                    contentScale = ContentScale.FillBounds
+                                                ),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                text = defaultCurrencySymbol.symbol,
+                                                modifier = Modifier.padding(10.dp)
+                                            )
+                                        }
                                     }
                                     Text(
-                                        text = if (keyboardType != KeyboardInputType.PASSWORD_NUMBER) currentTypingResult
-                                        else "*".repeat(currentTypingResult.length),
-                                        textAlign = TextAlign.Start
+                                        text = if (keyboardType != KeyboardInputType.PASSWORD_NUMBER || isPasswordShow) {
+                                            currentTypingResult
+                                        } else "*".repeat(currentTypingResult.length),
+                                        textAlign = TextAlign.Start,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .weight(1f)
                                     )
+                                    if (keyboardType == KeyboardInputType.PASSWORD_NUMBER) {
+                                        Box(
+                                            modifier = Modifier
+                                                .padding(start = 5.dp)
+                                                .wrapContentWidth()
+                                                .wrapContentHeight()
+                                                .paint(
+                                                    painter = painterResource(id = R.drawable.ic_square),
+                                                    contentScale = ContentScale.FillBounds
+                                                )
+                                                .clickable { isPasswordShow = !isPasswordShow },
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                imageVector = if (isPasswordShow) ImageVector.vectorResource(R.drawable.ic_eye_closed) else ImageVector.vectorResource(R.drawable.ic_eye_open),
+                                                modifier = Modifier.padding(10.dp),
+                                                contentDescription = "Password eye"
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -1465,7 +1533,9 @@ private fun showDropdownCurrency(defaultSymbol: CurrencySymbolList, onFinished: 
     var expanded by remember { mutableStateOf(false) }
     var selectedOptionText by remember { mutableStateOf(defaultSymbol) }
 
-    Column {
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ) {
         ExposedDropdownMenuBox(
             expanded = expanded,
             onExpandedChange = { expanded = !expanded }
@@ -1503,7 +1573,9 @@ private fun showDropdownCurrency(defaultSymbol: CurrencySymbolList, onFinished: 
             ExposedDropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .exposedDropdownSize(true)
             ) {
                 options.forEach { item ->
                     DropdownMenuItem(
@@ -1525,8 +1597,11 @@ private fun showDropdownCurrency(defaultSymbol: CurrencySymbolList, onFinished: 
 
         Button(
             onClick = { onFinished(selectedOptionText) },
-            shape = RectangleShape,
-            modifier = Modifier.padding(start = 10.dp)
+            shape = RoundedCornerShape(8.dp),
+            modifier = Modifier.padding(start = 10.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(ContextCompat.getColor(LocalContext.current, R.color.blue_700))
+            )
         ) {
             Text(text = LocalContext.current.getString(R.string.default_btn_currency))
         }

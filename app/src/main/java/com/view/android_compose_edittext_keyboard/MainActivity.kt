@@ -25,7 +25,7 @@ class MainActivity : ComponentActivity() {
                     Column {
                         customEditTextWithKeyboard(hintText = "input type text", keyboardType = KeyboardInputType.TEXT)
                         customEditTextWithKeyboard(hintText = "input type email", keyboardType = KeyboardInputType.EMAIL)
-                        customEditTextWithKeyboard(hintText = "input type currency", keyboardType = KeyboardInputType.CURRENCY)
+                        customEditTextWithKeyboard(hintText = "input type currency", keyboardType = KeyboardInputType.CURRENCY, isShowCurrencyType = true)
                         customEditTextWithKeyboard(hintText = "input type number", keyboardType = KeyboardInputType.NUMBER)
                         customEditTextWithKeyboard(hintText = "input type phone", keyboardType = KeyboardInputType.PHONE)
                         customEditTextWithKeyboard(hintText = "input type password number", keyboardType = KeyboardInputType.PASSWORD_NUMBER)
