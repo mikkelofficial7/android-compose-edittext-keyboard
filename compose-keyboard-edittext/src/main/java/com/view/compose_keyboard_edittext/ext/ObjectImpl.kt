@@ -1,14 +1,15 @@
 package com.view.compose_keyboard_edittext.ext
 
-import com.view.compose_keyboard_edittext.dropDownCurrency.DropDownCurrencyImpl
-import com.view.compose_keyboard_edittext.keyboard.KeyboardImpl
+import kotlin.properties.ReadOnlyProperty
+import kotlin.reflect.KProperty
 
-object ObjectImpl {
-    fun generateKeyboard(): KeyboardImpl {
-        return KeyboardImpl()
-    }
+class ObjectImpl<T>(private val factory: () -> T) : ReadOnlyProperty<Any?, T> {
+    private var value: T? = null
 
-    fun generateDropdown(): DropDownCurrencyImpl {
-        return DropDownCurrencyImpl()
+    override fun getValue(thisRef: Any?, property: KProperty<*>): T {
+        if (value == null) {
+            value = factory()
+        }
+        return value!!
     }
 }

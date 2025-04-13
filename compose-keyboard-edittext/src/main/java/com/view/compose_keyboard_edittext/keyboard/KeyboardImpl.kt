@@ -50,7 +50,7 @@ import com.view.compose_keyboard_edittext.enums.CurrencySymbolList
 import com.view.compose_keyboard_edittext.enums.KeyboardComponent
 import com.view.compose_keyboard_edittext.enums.KeyboardInputType
 import com.view.compose_keyboard_edittext.enums.KeyboardItemSymbol
-import com.view.compose_keyboard_edittext.ext.ObjectImpl.generateDropdown
+import com.view.compose_keyboard_edittext.ext.ObjectImpl
 import com.view.compose_keyboard_edittext.ext.convertToStringWithSeparator
 import com.view.compose_keyboard_edittext.ext.convertToStringWithoutSeparator
 
@@ -787,7 +787,7 @@ class KeyboardImpl: Keyboard {
             onDismiss(!isKeyboardShow)
         }
 
-        val dropDown: DropDownCurrency = generateDropdown()
+        val dropDown: DropDownCurrency by ObjectImpl { DropDownCurrencyImpl() }
         var alphabetOrSpecialCharState by remember { mutableStateOf(KeyboardItemSymbol.ALPHABET_OR_NUMBER) }
         var currentTypingResult by remember { mutableStateOf(initialValue) }
         var defaultCurrencySymbol by remember { mutableStateOf(CurrencySymbolList.ID) }

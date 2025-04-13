@@ -37,7 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.view.compose_keyboard_edittext.enums.KeyboardInputType
-import com.view.compose_keyboard_edittext.ext.ObjectImpl.generateKeyboard
+import com.view.compose_keyboard_edittext.ext.ObjectImpl
 import com.view.compose_keyboard_edittext.keyboard.Keyboard
 import com.view.compose_keyboard_edittext.keyboard.KeyboardImpl
 import kotlinx.coroutines.delay
@@ -70,7 +70,7 @@ fun customEditTextWithKeyboard(
     onTextValueChange: (String, String) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier
 ) {
-    val keyboard: Keyboard = generateKeyboard()
+    val keyboard: Keyboard by ObjectImpl { KeyboardImpl() }
     var cursorVisible by remember { mutableStateOf(true) }
     var text by remember { mutableStateOf(defaultText) }
     var maskingText by remember { mutableStateOf(defaultText) }
