@@ -1,12 +1,13 @@
 package com.view.compose_keyboard_edittext.ext
 
-import android.util.Log
+import androidx.annotation.RestrictTo
 import java.math.BigDecimal
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 
+
+@RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX)
 fun String.convertToStringWithoutSeparator(): String {
-    Log.d("TAG", "without: $this")
     if (this.isEmpty()) return this
 
     var mainCurrency = this
@@ -29,8 +30,8 @@ fun String.convertToStringWithoutSeparator(): String {
     return "${mainCurrency.replace(".", "")}$decimalCurrency"
 }
 
+@RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX)
 fun String.convertToStringWithSeparator() : String {
-    Log.d("TAG", "with: $this")
     if (this.isBlank()) return this
 
     var mainCurrency = this
